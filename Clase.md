@@ -37,7 +37,7 @@ ssh -T git@github.com
 
 **Output esperado del último comando:**
 ```
-Hi [DonovanDiazcide]! You've successfully authenticated, but GitHub does not provide shell access.
+Hi [tu-usuario]! You've successfully authenticated, but GitHub does not provide shell access.
 ```
 
 ---
@@ -113,7 +113,8 @@ git commit -m "feat: inicializa proyecto oTree con Public Goods Game"
 ### Paso 4: Conectar repositorio local con GitHub
 
 ```bash
-git remote add origin git@github.com:[DonovanDiazcide]/taller-otree-pgg.git
+# Agregar remoto (reemplazar [USUARIO] con el usuario de GitHub)
+git remote add origin git@github.com:[USUARIO]/taller-otree-pgg.git
 
 # Subir código
 git branch -M main
@@ -138,7 +139,7 @@ Una vez aceptada la invitación, cada participante ejecuta:
 cd ~/proyectos  # o la carpeta que prefieran
 
 # Clonar repositorio
-git clone git@github.com:DonovanDiazcide/taller-otree-pgg.git
+git clone git@github.com:[USUARIO]/taller-otree-pgg.git
 
 # Entrar al proyecto
 cd taller-otree-pgg
@@ -1886,22 +1887,12 @@ Rediseña completamente la página de resultados con visualizaciones mejoradas.
 Closes #3
 ```
 
-Perfecto, aquí va el **módulo completo para Donovan** en el mismo formato que los otros, listo para pegar en tu taller debajo de 3.3 👇
-
 ---
 
-## 3.4 MÓDULO 4: Donovan - Sistema de Castigo (Punishment Stage)
+## 3.4 MÓDULO 4: Donovan - Sistema de Castigo (Punishment)
 
 ### Objetivo
-
-Agregar una **etapa de castigo** después de ver los resultados del Public Goods Game, donde los participantes pueden pagar puntos para reducir el payoff de otros jugadores, siguiendo la lógica estándar de la literatura (ratio 1:3).
-
-* Cada punto de castigo **cuesta 1 unidad** al que castiga.
-* Cada punto de castigo **reduce 3 unidades** al castigado.
-* El castigo es **anónimo**: solo se observan los totales recibidos, no quién castigó a quién.
-* Se agregan nuevas páginas: `Punishment` y `FinalResults`.
-
----
+Implementar una etapa de castigo después de ver los resultados iniciales, donde los participantes pueden pagar para reducir el payoff de otros jugadores, siguiendo el diseño de Fehr & Gächter (2000).
 
 ### Flujo de trabajo Git
 
@@ -1911,138 +1902,78 @@ git checkout main
 git pull origin main
 
 # 2. Crear rama de feature
-git checkout -b feature/punishment-stage
+git checkout -b feature/sistema-castigo
 
 # 3. Verificar que estás en la rama correcta
 git branch
-# Debe mostrar: * feature/punishment-stage
+# Debe mostrar: * feature/sistema-castigo
 ```
-
----
 
 ### Prompt sugerido para IA
 
-> **Modelo recomendado:** GPT-5.1 Thinking
-> **Justificación:** El diseño de la etapa de castigo combina lógica económica (incentivos, costo/beneficio) y coordinación de varias partes del código (modelo de datos, funciones de grupo, flow de páginas). GPT-5.1 ayuda a razonar defensivamente sobre edge cases y consistencia con el juego base.
+> **Modelo recomendado:** Claude Opus 4.5  
+> **Justificación:** Esta es la tarea más compleja del taller: requiere crear nuevas páginas, modificar la lógica de payoffs, manejar interacciones entre jugadores, y mantener coherencia con el diseño experimental de Fehr & Gächter. Opus 4.5 es superior para tareas multi-archivo con lógica compleja.
 
-```text
-Actúa como un economista experimental experto en oTree 5 y en juegos de bienes públicos con castigo (Fehr & Gächter, 2000).
+```
+Eres un economista experimental y desarrollador oTree experto. Tu tarea es implementar el mecanismo de castigo del paper de Fehr & Gächter (2000).
 
 CONTEXTO:
-Estoy implementando un Public Goods Game en oTree 5. Ya existe:
-- Una etapa de contribución (Contribute)
-- Una página de resultados iniciales (Results) que muestra payoffs base
+Tengo un Public Goods Game funcionando en oTree 5 con:
+- 3 jugadores por grupo
+- Dotación de 100 puntos
+- Multiplicador configurable (1.2 o 2.0)
+- Páginas: Contribute -> ResultsWaitPage -> Results
 
-QUIERO AGREGAR:
-Una etapa de castigo (punishment stage), con las siguientes características:
+OBJETIVO:
+Agregar una etapa de castigo entre los resultados iniciales y los resultados finales.
 
-1. Después de ver los resultados, cada jugador puede asignar puntos de castigo a los demás jugadores de su grupo.
-2. Cada punto de castigo:
-   - Cuesta 1 unidad al que castiga
-   - Reduce 3 unidades al castigado
-3. Los jugadores no pueden castigarse a sí mismos.
-4. El castigo es anónimo: en la pantalla final solo se verá el total de castigo recibido, no quién lo envió.
+DISEÑO DEL CASTIGO (Fehr & Gächter 2000):
+1. Después de ver las contribuciones de todos, cada jugador puede asignar "puntos de castigo" a otros jugadores
+2. COSTO: Cada punto de castigo cuesta 1 unidad al que castiga
+3. EFECTO: Cada punto de castigo reduce 3 unidades al castigado
+4. ANONIMATO: Los jugadores no saben quién los castigó
+5. LÍMITE: Máximo 10 puntos de castigo por jugador castigado
 
-REQUISITOS TÉCNICOS (OTREE 5):
+FLUJO NUEVO:
+Contribute -> ResultsWaitPage -> IntermediateResults -> Punishment -> PunishmentWaitPage -> FinalResults
 
-- La estructura actual (simplificada) es:
-  - Clase C(BaseConstants) con:
-    - PLAYERS_PER_GROUP = 3
-    - ENDOWMENT, MULTIPLIER, etc.
-  - Clase Group(BaseGroup) con total_contribution, individual_share, etc.
-  - Clase Player(BasePlayer) con:
-    - contribution
-    - (opcional) payoff_before_punishment
-  - Función set_payoffs(group) que calcula el payoff base del PGG.
-  - Páginas: Contribute, ResultsWaitPage, Results
+REQUISITOS TÉCNICOS:
+1. En IntermediateResults: mostrar contribuciones (sin payoff final aún)
+2. En Punishment: interfaz para asignar puntos de castigo a cada otro jugador
+3. Necesito campos para:
+   - punishment_sent_to_player_X (cuánto castigué a cada uno)
+   - punishment_received (total que me castigaron)
+   - cost_of_punishment (cuánto gasté castigando)
+4. En FinalResults: mostrar payoff final = payoff_inicial - costo_castigo - castigo_recibido*3
 
-OBJETIVO TÉCNICO:
-1. Agregar campos al modelo para:
-   - Puntos de castigo enviados a cada jugador (por ejemplo: punish_1, punish_2, punish_3)
-   - Totales enviados y recibidos por cada jugador
-   - Payoff antes y después del castigo
-
-2. Agregar una función de grupo:
-   - apply_punishment(group) que:
-     a) Calcula cuánto castigo envía cada jugador
-     b) Calcula cuánto castigo recibe cada jugador
-     c) Actualiza el payoff final con:
-        payoff_final = payoff_base
-                        - costo_castigo_enviado
-                        - impacto_castigo_recibido
-
-3. Agregar nuevas páginas:
-   - Punishment (Page) donde cada jugador elige cuántos puntos de castigo asignar a cada otro jugador
-   - PunishmentWaitPage (WaitPage) que llama a apply_punishment cuando todos han decidido
-   - FinalResults (Page) que muestra:
-     - payoff antes del castigo
-     - castigo enviado
-     - castigo recibido
-     - payoff final después del castigo
-
-4. Actualizar page_sequence para que el flujo sea:
-   Introduction -> Comprehension -> Contribute -> ResultsWaitPage -> Results
-   -> Punishment -> PunishmentWaitPage -> FinalResults
-
-DETALLES ADICIONALES:
-- Número de jugadores por grupo: 3 (id_in_group = 1, 2 y 3).
-- Máximo de puntos de castigo por objetivo: 0 a 10 (parámetro configurable como constante).
-- Usa constantes:
-  - PUNISHMENT_MAX_POINTS = 10
-  - PUNISHMENT_COST_PER_POINT = 1
-  - PUNISHMENT_IMPACT_PER_POINT = 3
+CONSIDERACIONES:
+- El castigo debe ser a jugadores identificados por número, no por nombre real
+- Debo poder identificar a cada jugador sin revelar identidades
+- Usar player.id_in_group para identificar jugadores (1, 2, 3)
 
 OUTPUT ESPERADO:
-1. Fragmentos de código para agregar a public_goods/__init__.py:
-   - Nuevos campos en C, Group y Player
-   - Modificación de set_payoffs para guardar payoff_before_punishment
-   - Nueva función apply_punishment(group)
-   - Nuevas clases de página: Punishment, PunishmentWaitPage, FinalResults
-   - Nueva page_sequence actualizada
+1. Campos nuevos para Player
+2. Código completo de las nuevas páginas
+3. Templates para IntermediateResults, Punishment, y FinalResults
+4. Función para calcular payoffs finales con castigo
+5. page_sequence actualizado
 
-2. Template Punishment.html:
-   - Explica la lógica del castigo
-   - Muestra contribuciones y payoff base de los demás jugadores
-   - Renderiza los campos del formulario para elegir castigo
-
-3. Template FinalResults.html:
-   - Muestra desglose:
-     - Payoff antes del castigo
-     - Castigo enviado (total y costo)
-     - Castigo recibido (total y impacto)
-     - Payoff final
-
-Incluye comentarios explicativos y respeta las convenciones de oTree 5.
+Incluye comentarios que expliquen la lógica económica del mecanismo.
 ```
-
----
 
 ### Descripción de la tarea
 
 **Archivos a crear/modificar:**
+- `public_goods/__init__.py` - Agregar campos, páginas y lógica de castigo
+- `public_goods/templates/public_goods/IntermediateResults.html` - Nuevo
+- `public_goods/templates/public_goods/Punishment.html` - Nuevo
+- `public_goods/templates/public_goods/FinalResults.html` - Nuevo
 
-* `public_goods/__init__.py`
-
-  * Agregar constantes para el castigo.
-  * Agregar campos en `Player` para castigo enviado/recibido.
-  * Guardar `payoff_before_punishment` en `set_payoffs`.
-  * Crear función `apply_punishment(group)`.
-  * Crear páginas `Punishment`, `PunishmentWaitPage`, `FinalResults`.
-  * Actualizar `page_sequence`.
-
-* `public_goods/templates/public_goods/Punishment.html` (nuevo)
-
-* `public_goods/templates/public_goods/FinalResults.html` (nuevo)
-
-**Especificaciones económicas:**
-
-1. **Restricción de autoinfligirse castigo:** el jugador no puede asignarse castigo a sí mismo.
-2. **Costo del castigo (castigador):**
-   ( \text{costo} = 1 \times \text{puntos de castigo enviados} )
-3. **Impacto del castigo (castigado):**
-   ( \text{impacto} = 3 \times \text{puntos de castigo recibidos} )
-4. **Payoff final:**
-   ( \pi_i^{final} = \pi_i^{base} - 1 \cdot \text{castigo_enviado}_i - 3 \cdot \text{castigo_recibido}_i )
+**Especificaciones:**
+1. Ratio de castigo: 1:3 (cuesta 1, reduce 3)
+2. Máximo 10 puntos de castigo por jugador
+3. El castigo es anónimo
+4. Mostrar claramente el impacto del castigo en el payoff final
 
 ---
 
@@ -2051,93 +1982,45 @@ Incluye comentarios explicativos y respeta las convenciones de oTree 5.
 <details>
 <summary>Click para ver el hint</summary>
 
-**Idea general en oTree:**
+**Para manejar castigo entre jugadores en oTree 5:**
 
-1. **Define campos de castigo en `Player`:**
-
+1. **Para el castigo enviado**, necesitas campos dinámicos. Una forma es usar campos separados:
 ```python
 class Player(BasePlayer):
-    # ... campos existentes (contribution, etc.) ...
-
-    # Puntos de castigo que este jugador asigna a cada id_in_group
-    punish_1 = models.IntegerField(min=0, max=C.PUNISHMENT_MAX_POINTS, blank=True)
-    punish_2 = models.IntegerField(min=0, max=C.PUNISHMENT_MAX_POINTS, blank=True)
-    punish_3 = models.IntegerField(min=0, max=C.PUNISHMENT_MAX_POINTS, blank=True)
-
-    # Totales enviados y recibidos
-    punishment_sent_total = models.IntegerField(initial=0)
-    punishment_received_total = models.IntegerField(initial=0)
-
-    # Payoffs antes y después del castigo
-    payoff_before_punishment = models.CurrencyField()
-    payoff_after_punishment = models.CurrencyField()
+    # Castigo enviado a cada posición (no a IDs específicos)
+    punishment_sent_1 = models.IntegerField(min=0, max=10, initial=0)
+    punishment_sent_2 = models.IntegerField(min=0, max=10, initial=0)
+    # (Para 3 jugadores, solo necesitas castigar a 2 otros)
 ```
 
-2. **Guarda el payoff base antes del castigo en `set_payoffs`:**
-
+2. **Para identificar a quién castigar**, mapea posiciones:
 ```python
-def set_payoffs(group: Group):
-    # ... cálculo estándar de payoff base ...
-    for p in players:
-        baseline = endowment - p.contribution + group.individual_share
-        p.payoff_before_punishment = baseline
-        p.payoff = baseline
+@staticmethod
+def vars_for_template(player):
+    others = player.get_others_in_group()
+    other_players_info = []
+    for p in others:
+        other_players_info.append({
+            'id_in_group': p.id_in_group,
+            'contribution': p.contribution,
+        })
+    return dict(others=other_players_info)
 ```
 
-3. **Crea una función de grupo para aplicar castigos:**
-
+3. **Para calcular castigo recibido**, itera sobre el grupo:
 ```python
-def apply_punishment(group: Group):
+def calculate_punishment(group):
     players = group.get_players()
-
-    # 1) Calcular castigo enviado por cada jugador
     for p in players:
-        total_sent = 0
-        for i in range(1, C.PLAYERS_PER_GROUP + 1):
-            if i == p.id_in_group:
-                continue  # no se castiga a sí mismo
-            total_sent += getattr(p, f'punish_{i}') or 0
-        p.punishment_sent_total = total_sent
-
-    # 2) Calcular castigo recibido por cada jugador
-    for target in players:
         received = 0
-        i = target.id_in_group
-        for sender in players:
-            if sender.id_in_group == i:
-                continue
-            received += getattr(sender, f'punish_{i}') or 0
-        target.punishment_received_total = received
-
-    # 3) Ajustar payoffs con costo e impacto
-    for p in players:
-        cost = cu(C.PUNISHMENT_COST_PER_POINT * p.punishment_sent_total)
-        impact = cu(C.PUNISHMENT_IMPACT_PER_POINT * p.punishment_received_total)
-        p.payoff -= cost + impact
-        p.payoff_after_punishment = p.payoff
+        for other in p.get_others_in_group():
+            # Obtener cuánto 'other' castigó a 'p'
+            field_name = f'punishment_to_{p.id_in_group}'
+            received += getattr(other, field_name, 0)
+        p.punishment_received = received
 ```
 
-4. **En la página de Punishment, evita que el jugador vea el campo de castigo hacia sí mismo:**
-
-```python
-class Punishment(Page):
-    form_model = 'player'
-
-    @staticmethod
-    def get_form_fields(player):
-        fields = [f'punish_{i}' for i in range(1, C.PLAYERS_PER_GROUP + 1)]
-        self_field = f'punish_{player.id_in_group}'
-        return [f for f in fields if f != self_field]
-```
-
-5. **Crea una WaitPage que llame a `apply_punishment` y luego una página final con el desglose.**
-
-```python
-class PunishmentWaitPage(WaitPage):
-    after_all_players_arrive = 'apply_punishment'
-```
-
-Actualiza `page_sequence` para insertar estas nuevas páginas al final.
+4. **Alternativa más limpia**: Usa un campo JSON o ExtraModel para almacenar la matriz de castigo.
 
 </details>
 
@@ -2148,1184 +2031,1625 @@ Actualiza `page_sequence` para insertar estas nuevas páginas al final.
 <details>
 <summary>Click para ver la solución completa</summary>
 
-#### 1. Modificaciones a `public_goods/__init__.py`
-
-##### 1.1. Agregar constantes de castigo a la clase `C`
+#### Modificaciones completas a `public_goods/__init__.py`
 
 ```python
+from otree.api import *
+import json
+
+doc = """
+Public Goods Game con castigo (punishment).
+Basado en Fehr & Gächter (2000): "Cooperation and Punishment in Public Goods Experiments"
+
+Diseño del castigo:
+- Costo: 1 punto por cada punto de castigo asignado
+- Efecto: 3 puntos de reducción por cada punto recibido
+- Ratio 1:3 es estándar en la literatura experimental
+"""
+
+
 class C(BaseConstants):
     NAME_IN_URL = 'public_goods'
     PLAYERS_PER_GROUP = 3
     NUM_ROUNDS = 1
     ENDOWMENT = cu(100)
     MULTIPLIER = 2
+    
+    # Parámetros del castigo
+    PUNISHMENT_COST = 1      # Costo por punto de castigo enviado
+    PUNISHMENT_EFFECT = 3    # Reducción por punto de castigo recibido
+    MAX_PUNISHMENT = 10      # Máximo de puntos de castigo por jugador
 
-    # --- NUEVAS CONSTANTES PARA EL CASTIGO ---
-    PUNISHMENT_MAX_POINTS = 10              # Máximo de puntos de castigo que puedes asignar a cada jugador
-    PUNISHMENT_COST_PER_POINT = 1           # Cada punto de castigo cuesta 1 unidad al castigador
-    PUNISHMENT_IMPACT_PER_POINT = 3         # Cada punto de castigo reduce 3 unidades al castigado
-```
 
-> Ajusta los valores si quieres variar la severidad del castigo.
+class Subsession(BaseSubsession):
+    pass
 
----
 
-##### 1.2. Agregar campos de castigo a la clase `Player`
+class Group(BaseGroup):
+    total_contribution = models.CurrencyField()
+    individual_share = models.CurrencyField()
 
-Agrega estos campos **dentro de** la clase `Player(BasePlayer)` (además de los que ya tengas: `contribution`, etc.):
 
-```python
 class Player(BasePlayer):
-    # ... campos existentes (contribution, comp_q1, etc.) ...
-
-    # Puntos de castigo que este jugador asigna a cada id_in_group
-    punish_1 = models.IntegerField(
+    contribution = models.CurrencyField(
         min=0,
-        max=C.PUNISHMENT_MAX_POINTS,
-        blank=True,
-        label="Puntos de castigo para el Jugador 1"
+        max=C.ENDOWMENT,
+        label="¿Cuánto quieres contribuir al fondo común?"
     )
-    punish_2 = models.IntegerField(
-        min=0,
-        max=C.PUNISHMENT_MAX_POINTS,
-        blank=True,
-        label="Puntos de castigo para el Jugador 2"
+    
+    # Campos de comprensión (del módulo de Mauricio)
+    comp_q1 = models.IntegerField(
+        label="¿Cuántos puntos recibe cada jugador al inicio?"
     )
-    punish_3 = models.IntegerField(
-        min=0,
-        max=C.PUNISHMENT_MAX_POINTS,
-        blank=True,
-        label="Puntos de castigo para el Jugador 3"
+    comp_q2 = models.IntegerField(
+        label="Si todos contribuyen 50 puntos, ¿cuánto habrá en el fondo antes de multiplicar?",
+        choices=[[50, '50'], [100, '100'], [150, '150'], [200, '200']]
     )
-
+    comp_q3 = models.IntegerField(
+        label="Si el fondo multiplicado tiene 300 puntos, ¿cuánto recibe cada jugador?",
+        choices=[[50, '50'], [100, '100'], [150, '150'], [300, '300']]
+    )
+    
+    # Payoff intermedio (antes del castigo)
+    intermediate_payoff = models.CurrencyField()
+    
+    # Castigo enviado a cada otro jugador
+    # Usamos campos explícitos para los 2 otros jugadores posibles
+    punishment_to_1 = models.IntegerField(
+        min=0, max=C.MAX_PUNISHMENT, initial=0,
+        label="Puntos de castigo para Jugador 1"
+    )
+    punishment_to_2 = models.IntegerField(
+        min=0, max=C.MAX_PUNISHMENT, initial=0,
+        label="Puntos de castigo para Jugador 2"
+    )
+    punishment_to_3 = models.IntegerField(
+        min=0, max=C.MAX_PUNISHMENT, initial=0,
+        label="Puntos de castigo para Jugador 3"
+    )
+    
     # Totales de castigo
-    punishment_sent_total = models.IntegerField(initial=0)
-    punishment_received_total = models.IntegerField(initial=0)
+    total_punishment_sent = models.IntegerField(initial=0)
+    total_punishment_received = models.IntegerField(initial=0)
+    cost_of_punishment = models.CurrencyField(initial=0)
+    punishment_deduction = models.CurrencyField(initial=0)
 
-    # Payoffs antes y después del castigo
-    payoff_before_punishment = models.CurrencyField()
-    payoff_after_punishment = models.CurrencyField()
-```
 
----
+# FUNCIONES AUXILIARES
 
-##### 1.3. Modificar `set_payoffs` para guardar el payoff base
+def get_punishment_field_name(target_id):
+    """Retorna el nombre del campo de castigo para un jugador específico."""
+    return f'punishment_to_{target_id}'
 
-Suponiendo que ya tienes una función `set_payoffs(group)` que calcula el payoff del juego base, asegúrate de que guarde el payoff base en `payoff_before_punishment` antes del castigo.
 
-Ejemplo (adaptando tu implementación actual):
+def get_punishment_to(player, target_id):
+    """Obtiene cuánto castigo envió player al jugador con target_id."""
+    field_name = get_punishment_field_name(target_id)
+    return getattr(player, field_name, 0)
 
-```python
+
+def set_punishment_to(player, target_id, value):
+    """Establece el castigo de player hacia target_id."""
+    field_name = get_punishment_field_name(target_id)
+    setattr(player, field_name, value)
+
+
+# FUNCIONES DE GRUPO
+
 def set_payoffs(group: Group):
+    """
+    Calcula payoffs intermedios (antes del castigo).
+    Payoff = Endowment - Contribution + Share
+    """
     session = group.session
-
-    # Parámetros (ajusta según tu versión actual)
     endowment = session.config.get('endowment', C.ENDOWMENT)
     multiplier = session.config.get('multiplier', C.MULTIPLIER)
     n_players = session.config.get('players_per_group', C.PLAYERS_PER_GROUP)
-
+    
     players = group.get_players()
     contributions = [p.contribution for p in players]
     group.total_contribution = sum(contributions)
     group.individual_share = (group.total_contribution * multiplier) / n_players
-
+    
     for p in players:
-        baseline_payoff = endowment - p.contribution + group.individual_share
+        p.intermediate_payoff = endowment - p.contribution + group.individual_share
 
-        # Guardar payoff base
-        p.payoff_before_punishment = baseline_payoff
 
-        # Por ahora, payoff = payoff base (se ajustará en apply_punishment)
-        p.payoff = baseline_payoff
-        p.payoff_after_punishment = baseline_payoff  # valor provisional
-```
-
----
-
-##### 1.4. Agregar la función `apply_punishment(group)`
-
-```python
-def apply_punishment(group: Group):
+def calculate_final_payoffs(group: Group):
     """
-    Aplica el sistema de castigo tipo Fehr & Gächter:
-    - Cada punto de castigo cuesta 1 unidad al castigador
-    - Cada punto de castigo reduce 3 unidades al castigado
+    Calcula payoffs finales después del castigo.
+    
+    Final Payoff = Intermediate Payoff - Cost of Punishment Sent - (Punishment Received × Effect)
+    
+    Donde:
+    - Cost of Punishment Sent = Total puntos enviados × PUNISHMENT_COST
+    - Punishment Received × Effect = Total puntos recibidos × PUNISHMENT_EFFECT
     """
     players = group.get_players()
-
-    # 1) Calcular castigo ENVIADO por cada jugador
-    for p in players:
-        total_sent = 0
-        for i in range(1, C.PLAYERS_PER_GROUP + 1):
-            if i == p.id_in_group:
-                continue  # no se castiga a sí mismo
-            value = getattr(p, f'punish_{i}', 0) or 0
-            total_sent += value
-        p.punishment_sent_total = total_sent
-
-    # 2) Calcular castigo RECIBIDO por cada jugador
-    for target in players:
+    
+    # Primero, calcular castigo enviado y recibido para cada jugador
+    for player in players:
+        # Calcular total de castigo enviado
+        sent = 0
+        for other in player.get_others_in_group():
+            sent += get_punishment_to(player, other.id_in_group)
+        player.total_punishment_sent = sent
+        player.cost_of_punishment = sent * C.PUNISHMENT_COST
+        
+        # Calcular total de castigo recibido
         received = 0
-        i = target.id_in_group
-        for sender in players:
-            if sender.id_in_group == i:
-                continue
-            value = getattr(sender, f'punish_{i}', 0) or 0
-            received += value
-        target.punishment_received_total = received
+        for other in player.get_others_in_group():
+            received += get_punishment_to(other, player.id_in_group)
+        player.total_punishment_received = received
+        player.punishment_deduction = received * C.PUNISHMENT_EFFECT
+    
+    # Calcular payoff final
+    for player in players:
+        player.payoff = (
+            player.intermediate_payoff 
+            - player.cost_of_punishment 
+            - player.punishment_deduction
+        )
+        # Asegurar que el payoff no sea negativo
+        if player.payoff < 0:
+            player.payoff = cu(0)
 
-    # 3) Ajustar payoffs con costo e impacto
-    for p in players:
-        cost = cu(C.PUNISHMENT_COST_PER_POINT * p.punishment_sent_total)
-        impact = cu(C.PUNISHMENT_IMPACT_PER_POINT * p.punishment_received_total)
 
-        # Partimos del payoff ya calculado en set_payoffs
-        p.payoff = p.payoff_before_punishment - cost - impact
-        p.payoff_after_punishment = p.payoff
-```
+# PAGES
 
----
+class Introduction(Page):
+    """Página de instrucciones."""
+    pass
 
-##### 1.5. Crear páginas `Punishment`, `PunishmentWaitPage` y `FinalResults`
 
-Agrega estas clases de página:
-
-```python
-class Punishment(Page):
-    """
-    Página donde cada jugador decide cuánto castigo asignar a cada otro jugador.
-    """
+class Comprehension(Page):
+    """Preguntas de comprensión."""
     form_model = 'player'
-
+    form_fields = ['comp_q1', 'comp_q2', 'comp_q3']
+    
     @staticmethod
-    def get_form_fields(player):
-        # Campos de castigo hacia cada id_in_group
-        fields = [f'punish_{i}' for i in range(1, C.PLAYERS_PER_GROUP + 1)]
-        # No permitir castigo a sí mismo
-        self_field = f'punish_{player.id_in_group}'
-        return [f for f in fields if f != self_field]
+    def error_message(player, values):
+        solutions = {'comp_q1': 100, 'comp_q2': 150, 'comp_q3': 100}
+        errors = []
+        for field, correct in solutions.items():
+            if values[field] != correct:
+                errors.append(f"Revisa tu respuesta a la pregunta sobre {field}.")
+        if errors:
+            return ' '.join(errors)
 
+
+class Contribute(Page):
+    """Página de contribución."""
+    form_model = 'player'
+    form_fields = ['contribution']
+    
     @staticmethod
     def vars_for_template(player):
-        group = player.group
-        players = group.get_players()
-
-        # Información anónima de los otros jugadores
-        others_info = []
-        for p in players:
-            if p.id_in_group == player.id_in_group:
-                continue
-            others_info.append(dict(
-                id_in_group=p.id_in_group,
-                contribution=p.contribution,
-                payoff_before=p.payoff_before_punishment
-            ))
-
+        session = player.session
         return dict(
-            others=others_info,
-            max_points=C.PUNISHMENT_MAX_POINTS,
-            cost_per=C.PUNISHMENT_COST_PER_POINT,
-            impact_per=C.PUNISHMENT_IMPACT_PER_POINT,
+            endowment=session.config.get('endowment', C.ENDOWMENT),
+            multiplier=session.config.get('multiplier', C.MULTIPLIER),
         )
 
 
+class ResultsWaitPage(WaitPage):
+    """Espera a que todos contribuyan."""
+    after_all_players_arrive = set_payoffs
+
+
+class IntermediateResults(Page):
+    """
+    Muestra resultados iniciales antes del castigo.
+    Los jugadores ven las contribuciones de todos pero no el payoff final.
+    """
+    @staticmethod
+    def vars_for_template(player):
+        group = player.group
+        session = player.session
+        
+        endowment = session.config.get('endowment', C.ENDOWMENT)
+        multiplier = session.config.get('multiplier', C.MULTIPLIER)
+        
+        # Información de otros jugadores
+        players_info = []
+        for p in group.get_players():
+            players_info.append({
+                'id': p.id_in_group,
+                'contribution': float(p.contribution),
+                'is_self': p.id == player.id,
+                'label': 'Tú' if p.id == player.id else f'Jugador {p.id_in_group}',
+            })
+        
+        return dict(
+            players_info=players_info,
+            total_contribution=group.total_contribution,
+            multiplied_fund=float(group.total_contribution) * multiplier,
+            individual_share=group.individual_share,
+            intermediate_payoff=player.intermediate_payoff,
+            endowment=endowment,
+            multiplier=multiplier,
+            punishment_cost=C.PUNISHMENT_COST,
+            punishment_effect=C.PUNISHMENT_EFFECT,
+            max_punishment=C.MAX_PUNISHMENT,
+        )
+
+
+class Punishment(Page):
+    """
+    Página de castigo.
+    Cada jugador puede asignar puntos de castigo a los otros jugadores.
+    """
+    form_model = 'player'
+    
+    @staticmethod
+    def get_form_fields(player):
+        """Genera dinámicamente los campos según los otros jugadores."""
+        others = player.get_others_in_group()
+        return [f'punishment_to_{p.id_in_group}' for p in others]
+    
+    @staticmethod
+    def vars_for_template(player):
+        others = player.get_others_in_group()
+        others_info = []
+        for p in others:
+            others_info.append({
+                'id': p.id_in_group,
+                'contribution': float(p.contribution),
+                'field_name': f'punishment_to_{p.id_in_group}',
+            })
+        
+        return dict(
+            others_info=others_info,
+            my_intermediate_payoff=player.intermediate_payoff,
+            punishment_cost=C.PUNISHMENT_COST,
+            punishment_effect=C.PUNISHMENT_EFFECT,
+            max_punishment=C.MAX_PUNISHMENT,
+        )
+    
+    @staticmethod
+    def error_message(player, values):
+        """Valida que el jugador tenga suficientes puntos para castigar."""
+        total_punishment = sum(values.values())
+        cost = total_punishment * C.PUNISHMENT_COST
+        
+        if cost > player.intermediate_payoff:
+            return f'No tienes suficientes puntos. El costo total del castigo ({cost}) excede tu payoff intermedio ({player.intermediate_payoff}).'
+
+
 class PunishmentWaitPage(WaitPage):
-    """
-    Espera a que todos elijan castigo y luego aplica la función apply_punishment.
-    """
-    after_all_players_arrive = 'apply_punishment'
+    """Espera a que todos decidan su castigo."""
+    after_all_players_arrive = calculate_final_payoffs
 
 
 class FinalResults(Page):
     """
-    Muestra el payoff antes y después del castigo, junto con el desglose.
+    Muestra resultados finales después del castigo.
+    Incluye desglose completo del cálculo.
     """
     @staticmethod
     def vars_for_template(player):
-        cost = C.PUNISHMENT_COST_PER_POINT * player.punishment_sent_total
-        impact = C.PUNISHMENT_IMPACT_PER_POINT * player.punishment_received_total
-
+        group = player.group
+        session = player.session
+        
+        # Info de todos los jugadores para la tabla
+        players_final = []
+        for p in group.get_players():
+            players_final.append({
+                'id': p.id_in_group,
+                'contribution': float(p.contribution),
+                'intermediate_payoff': float(p.intermediate_payoff),
+                'punishment_sent': p.total_punishment_sent,
+                'punishment_received': p.total_punishment_received,
+                'cost': float(p.cost_of_punishment),
+                'deduction': float(p.punishment_deduction),
+                'final_payoff': float(p.payoff),
+                'is_self': p.id == player.id,
+            })
+        
         return dict(
-            payoff_before=player.payoff_before_punishment,
-            payoff_after=player.payoff_after_punishment,
-            punishment_sent_total=player.punishment_sent_total,
-            punishment_received_total=player.punishment_received_total,
-            cost_castigo=cost,
-            impacto_castigo=impact,
+            players_final=players_final,
+            my_contribution=player.contribution,
+            intermediate_payoff=player.intermediate_payoff,
+            punishment_sent=player.total_punishment_sent,
+            punishment_received=player.total_punishment_received,
+            cost_of_punishment=player.cost_of_punishment,
+            punishment_deduction=player.punishment_deduction,
+            final_payoff=player.payoff,
+            punishment_cost_ratio=C.PUNISHMENT_COST,
+            punishment_effect_ratio=C.PUNISHMENT_EFFECT,
         )
-```
 
----
 
-##### 1.6. Actualizar `page_sequence`
+# Legacy Results page (puede eliminarse o mantener para compatibilidad)
+class Results(Page):
+    """Página de resultados legacy - redirige a FinalResults si hay castigo."""
+    @staticmethod
+    def is_displayed(player):
+        return False  # No mostrar, usamos FinalResults
 
-Suponiendo que tu secuencia actual (después de los otros módulos) es:
 
-```python
-page_sequence = [Introduction, Comprehension, Contribute, ResultsWaitPage, Results]
-```
-
-Actualízala para incluir la etapa de castigo:
-
-```python
 page_sequence = [
     Introduction,
     Comprehension,
     Contribute,
     ResultsWaitPage,
-    Results,
+    IntermediateResults,
     Punishment,
     PunishmentWaitPage,
     FinalResults,
 ]
 ```
 
----
+#### Template: `IntermediateResults.html`
 
-#### 2. Template `Punishment.html`
+Crear `public_goods/templates/public_goods/IntermediateResults.html`:
 
-Crear el archivo
-`public_goods/templates/public_goods/Punishment.html`:
+```html
+{{ block title }}
+    Resultados de Contribuciones
+{{ endblock }}
+
+{{ block styles }}
+<style>
+    .results-box {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 15px 0;
+    }
+    .highlight {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    .warning-box {
+        background: #fff3e0;
+        border-left: 4px solid #ff9800;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+    }
+    th, td {
+        padding: 12px;
+        text-align: center;
+        border: 1px solid #ddd;
+    }
+    th {
+        background: #4caf50;
+        color: white;
+    }
+    tr.is-self {
+        background: #e8f5e9;
+        font-weight: bold;
+    }
+</style>
+{{ endblock }}
+
+{{ block content }}
+<div class="results-box">
+    <h3>📊 Contribuciones del Grupo</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Jugador</th>
+                <th>Contribución</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ for p in players_info }}
+            <tr class="{{ if p.is_self }}is-self{{ endif }}">
+                <td>{{ p.label }}</td>
+                <td>{{ p.contribution }} puntos</td>
+            </tr>
+            {{ endfor }}
+        </tbody>
+    </table>
+    
+    <div class="highlight">
+        <strong>Total contribuido:</strong> {{ total_contribution }}<br>
+        <strong>Fondo multiplicado (×{{ multiplier }}):</strong> {{ multiplied_fund }} puntos<br>
+        <strong>Tu parte del fondo:</strong> {{ individual_share }}
+    </div>
+    
+    <p><strong>Tu payoff intermedio:</strong> {{ intermediate_payoff }}</p>
+</div>
+
+<div class="warning-box">
+    <h4>⚠️ Etapa de Castigo</h4>
+    <p>A continuación, tendrás la oportunidad de <strong>castigar</strong> a otros jugadores si lo deseas.</p>
+    <ul>
+        <li><strong>Costo:</strong> Cada punto de castigo te cuesta {{ punishment_cost }} punto</li>
+        <li><strong>Efecto:</strong> Cada punto de castigo reduce {{ punishment_effect }} puntos al jugador castigado</li>
+        <li><strong>Máximo:</strong> Puedes asignar hasta {{ max_punishment }} puntos de castigo por jugador</li>
+        <li><strong>Anonimato:</strong> Los jugadores no sabrán quién los castigó</li>
+    </ul>
+</div>
+
+{{ next_button }}
+{{ endblock }}
+```
+
+#### Template: `Punishment.html`
+
+Crear `public_goods/templates/public_goods/Punishment.html`:
 
 ```html
 {{ block title }}
     Etapa de Castigo
 {{ endblock }}
 
+{{ block styles }}
+<style>
+    .punishment-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .player-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 15px 0;
+        border-left: 4px solid #2196f3;
+    }
+    .info-box {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .cost-warning {
+        color: #d32f2f;
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+    input[type="number"] {
+        width: 80px;
+        padding: 8px;
+        font-size: 16px;
+        text-align: center;
+    }
+    .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+</style>
+{{ endblock }}
+
 {{ block content }}
 <div class="punishment-container">
-    <h3>Etapa de Castigo</h3>
-
-    <p>
-        Ahora puedes asignar <strong>puntos de castigo</strong> a los otros jugadores de tu grupo.
-    </p>
-
-    <ul>
-        <li>No puedes castigarte a ti mismo.</li>
-        <li>Cada punto de castigo <strong>te cuesta {{ cost_per }} punto(s)</strong>.</li>
-        <li>Cada punto de castigo <strong>reduce {{ impact_per }} punto(s)</strong> al jugador castigado.</li>
-    </ul>
-
-    <div style="background-color:#f9f9f9; padding:15px; border-radius:6px; margin:15px 0;">
-        <h4>Información del resultado antes del castigo</h4>
-        <p>Ves las contribuciones y payoffs base de los otros jugadores:</p>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Jugador</th>
-                    <th>Contribución</th>
-                    <th>Payoff antes del castigo</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{ for other in others }}
-                <tr>
-                    <td>Jugador {{ other.id_in_group }}</td>
-                    <td>{{ other.contribution }}</td>
-                    <td>{{ other.payoff_before }}</td>
-                </tr>
-                {{ endfor }}
-            </tbody>
-        </table>
+    <div class="info-box">
+        <p><strong>Tu payoff actual:</strong> {{ my_intermediate_payoff }}</p>
+        <p>
+            Recuerda: Cada punto de castigo te cuesta <strong>{{ punishment_cost }}</strong> punto 
+            y reduce <strong>{{ punishment_effect }}</strong> puntos al jugador castigado.
+        </p>
     </div>
-
-    <p>
-        Elige cuántos <strong>puntos de castigo</strong> asignar a cada uno de los otros jugadores.
-        El máximo por jugador es <strong>{{ max_points }}</strong>.
-    </p>
-
-    {{ formfields }}
-
+    
+    <h3>¿Deseas castigar a algún jugador?</h3>
+    <p><em>Puedes dejar en 0 si no deseas castigar.</em></p>
+    
+    {{ for other in others_info }}
+    <div class="player-card">
+        <h4>Jugador {{ other.id }}</h4>
+        <p>Contribuyó: <strong>{{ other.contribution }} puntos</strong></p>
+        
+        <label>Puntos de castigo (0-{{ max_punishment }}):</label>
+        <div class="slider-container">
+            {{ formfield other.field_name }}
+        </div>
+        <p class="cost-warning">
+            Costo para ti: <span id="cost_{{ other.id }}">0</span> puntos
+        </p>
+    </div>
+    {{ endfor }}
+    
+    <div style="background: #ffebee; padding: 15px; border-radius: 5px; margin-top: 20px;">
+        <strong>Costo total de castigo:</strong> <span id="total_cost">0</span> puntos
+    </div>
+    
     {{ next_button }}
 </div>
 {{ endblock }}
+
+{{ block scripts }}
+<script>
+    // Actualizar costos en tiempo real
+    const costPerPoint = {{ punishment_cost }};
+    const inputs = document.querySelectorAll('input[type="number"]');
+    
+    function updateCosts() {
+        let total = 0;
+        inputs.forEach(input => {
+            const value = parseInt(input.value) || 0;
+            const playerId = input.name.split('_').pop();
+            const costSpan = document.getElementById('cost_' + playerId);
+            if (costSpan) {
+                costSpan.textContent = value * costPerPoint;
+            }
+            total += value * costPerPoint;
+        });
+        document.getElementById('total_cost').textContent = total;
+    }
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', updateCosts);
+    });
+    
+    updateCosts();
+</script>
+{{ endblock }}
 ```
 
----
+#### Template: `FinalResults.html`
 
-#### 3. Template `FinalResults.html`
-
-Crear el archivo
-`public_goods/templates/public_goods/FinalResults.html`:
+Crear `public_goods/templates/public_goods/FinalResults.html`:
 
 ```html
 {{ block title }}
     Resultados Finales
 {{ endblock }}
 
+{{ block styles }}
+<style>
+    .final-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .section {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+    .section h3 {
+        margin-top: 0;
+        border-bottom: 2px solid #4caf50;
+        padding-bottom: 10px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+        font-size: 14px;
+    }
+    th, td {
+        padding: 10px;
+        text-align: center;
+        border: 1px solid #ddd;
+    }
+    th {
+        background: #4caf50;
+        color: white;
+    }
+    tr.is-self {
+        background: #e8f5e9;
+        font-weight: bold;
+    }
+    .calculation {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    .calc-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px dashed #eee;
+    }
+    .calc-row:last-child {
+        border-bottom: none;
+        font-weight: bold;
+        font-size: 1.2em;
+        color: #4caf50;
+    }
+    .calc-row.negative {
+        color: #d32f2f;
+    }
+    .final-payoff-box {
+        background: linear-gradient(135deg, #4caf50, #8bc34a);
+        color: white;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+        margin-top: 20px;
+    }
+    .final-payoff-box h2 {
+        margin: 0;
+        font-size: 2em;
+    }
+</style>
+{{ endblock }}
+
 {{ block content }}
-<div class="final-results-container" style="max-width:700px; margin:0 auto;">
-    <h3>Resultados Finales de la Ronda</h3>
-
-    <div style="background-color:#E3F2FD; padding:15px; border-radius:6px; margin-bottom:20px;">
-        <p>
-            <strong>Tu payoff antes del castigo:</strong> {{ payoff_before }} puntos
-        </p>
+<div class="final-container">
+    
+    <!-- Tabla resumen de todos los jugadores -->
+    <div class="section">
+        <h3>📊 Resumen del Grupo</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Jugador</th>
+                    <th>Contribución</th>
+                    <th>Payoff Intermedio</th>
+                    <th>Castigo Enviado</th>
+                    <th>Castigo Recibido</th>
+                    <th>Payoff Final</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ for p in players_final }}
+                <tr class="{{ if p.is_self }}is-self{{ endif }}">
+                    <td>{{ if p.is_self }}Tú{{ else }}Jugador {{ p.id }}{{ endif }}</td>
+                    <td>{{ p.contribution }}</td>
+                    <td>{{ p.intermediate_payoff }}</td>
+                    <td>{{ p.punishment_sent }} pts (costo: {{ p.cost }})</td>
+                    <td>{{ p.punishment_received }} pts (deducción: {{ p.deduction }})</td>
+                    <td><strong>{{ p.final_payoff }}</strong></td>
+                </tr>
+                {{ endfor }}
+            </tbody>
+        </table>
     </div>
-
-    <div style="background-color:#FFF3E0; padding:15px; border-radius:6px; margin-bottom:20px;">
-        <h4>Castigo que enviaste</h4>
-        <p>
-            Puntos de castigo enviados: <strong>{{ punishment_sent_total }}</strong><br>
-            Costo total del castigo: <strong>{{ cost_castigo }}</strong> puntos
-        </p>
+    
+    <!-- Desglose de tu cálculo -->
+    <div class="section">
+        <h3>🧮 Tu Cálculo Detallado</h3>
+        
+        <div class="calculation">
+            <div class="calc-row">
+                <span>Payoff intermedio (antes del castigo):</span>
+                <span>{{ intermediate_payoff }}</span>
+            </div>
+            
+            <div class="calc-row negative">
+                <span>Costo de castigo enviado ({{ punishment_sent }} × {{ punishment_cost_ratio }}):</span>
+                <span>- {{ cost_of_punishment }}</span>
+            </div>
+            
+            <div class="calc-row negative">
+                <span>Deducción por castigo recibido ({{ punishment_received }} × {{ punishment_effect_ratio }}):</span>
+                <span>- {{ punishment_deduction }}</span>
+            </div>
+            
+            <div class="calc-row">
+                <span>TU PAYOFF FINAL:</span>
+                <span>{{ final_payoff }}</span>
+            </div>
+        </div>
     </div>
-
-    <div style="background-color:#FFEBEE; padding:15px; border-radius:6px; margin-bottom:20px;">
-        <h4>Castigo que recibiste</h4>
-        <p>
-            Puntos de castigo recibidos: <strong>{{ punishment_received_total }}</strong><br>
-            Impacto total del castigo: <strong>{{ impacto_castigo }}</strong> puntos
-        </p>
-        <p style="font-size:0.9em; color:#555;">
-            No se muestra quién te castigó; solo el total recibido.
-        </p>
+    
+    <!-- Información sobre el castigo -->
+    <div class="section">
+        <h3>📝 Información sobre el Castigo</h3>
+        <ul>
+            <li><strong>Castigo que enviaste:</strong> {{ punishment_sent }} puntos (te costó {{ cost_of_punishment }})</li>
+            <li><strong>Castigo que recibiste:</strong> {{ punishment_received }} puntos (te dedujeron {{ punishment_deduction }})</li>
+        </ul>
+        <p><em>Nota: El castigo es anónimo. No puedes saber quién te castigó.</em></p>
     </div>
-
-    <div style="background:linear-gradient(135deg, #4CAF50, #8BC34A); color:white; padding:20px; border-radius:8px; text-align:center; margin-bottom:20px;">
-        <h4>🎯 Tu payoff final en esta ronda</h4>
-        <p style="font-size:1.4em;">
-            <strong>{{ payoff_after }}</strong> puntos
-        </p>
+    
+    <!-- Payoff final destacado -->
+    <div class="final-payoff-box">
+        <p>Tu ganancia final en esta ronda:</p>
+        <h2>{{ player.payoff }}</h2>
     </div>
-
-    {{ next_button }}
+    
 </div>
+
+{{ next_button }}
 {{ endblock }}
 ```
 
----
-
-#### 4. Commits sugeridos
+#### Commits sugeridos
 
 ```bash
-# Modificaciones en __init__.py
+# Después de agregar campos y lógica
 git add public_goods/__init__.py
-git commit -m "feat(public_goods): agrega sistema de castigo tipo Fehr & Gächter"
+git commit -m "feat(public_goods): implementa sistema de castigo Fehr-Gächter
 
-# Nuevos templates
+- Agrega campos de castigo enviado/recibido
+- Implementa cálculo de payoffs con castigo (ratio 1:3)
+- Agrega páginas IntermediateResults, Punishment, FinalResults
+- Documenta mecanismo económico en comentarios"
+
+# Templates
+git add public_goods/templates/public_goods/IntermediateResults.html
+git commit -m "feat(public_goods): crea template IntermediateResults"
+
 git add public_goods/templates/public_goods/Punishment.html
+git commit -m "feat(public_goods): crea template Punishment con cálculo dinámico de costos"
+
 git add public_goods/templates/public_goods/FinalResults.html
-git commit -m "feat(public_goods): agrega vistas Punishment y FinalResults para etapa de castigo"
+git commit -m "feat(public_goods): crea template FinalResults con desglose completo"
 
-# Push de la rama
-git push -u origin feature/punishment-stage
-```
-
----
-
-#### 5. Verificación local
-
-```bash
-otree devserver
-# En el navegador:
-# 1. Jugar el PGG normalmente.
-# 2. Verificar que aparece la página de Resultados (payoff base).
-# 3. Ir a la página de Punishment, asignar castigo a otros.
-# 4. Confirmar que, después de la WaitPage, FinalResults muestra:
-#    - payoff antes del castigo
-#    - castigo enviado/recibido
-#    - payoff final coherente con las fórmulas
-```
-
-#### 6. Crear Pull Request
-
-**Title:**
-
-```text
-feat(public_goods): Implementa etapa de castigo (punishment stage)
-```
-
-**Body:**
-
-```markdown
-## Descripción
-Agrega una etapa de castigo al Public Goods Game siguiendo el esquema de Fehr & Gächter (2000).
-
-## Cambios principales
-- Nuevas constantes en `C` para parametrizar el castigo.
-- Campos en `Player` para castigo enviado/recibido y payoffs antes/después.
-- Función `apply_punishment(group)` que aplica el costo e impacto del castigo.
-- Nuevas páginas:
-  - `Punishment`: interfaz para asignar puntos de castigo a otros jugadores.
-  - `PunishmentWaitPage`: sincronización y aplicación de castigo.
-  - `FinalResults`: muestra el desglose final del payoff.
-
-## Lógica económica
-- Cada punto de castigo cuesta 1 unidad al que castiga.
-- Cada punto de castigo reduce 3 unidades al castigado.
-- El castigo es anónimo: solo se muestra el total recibido.
-
-## Testing
-- [x] Probado localmente con `otree devserver`.
-- [x] Payoff final coincide con la fórmula:
-      π_final = π_base - 1 * castigo_enviado - 3 * castigo_recibido.
-- [x] No se permite asignar castigo a uno mismo.
-
-Closes #4
+# Push
+git push -u origin feature/sistema-castigo
 ```
 
 </details>
 
 ---
 
-
-Perfecto, aquí tienes las secciones **7, 8 y 9** listas para copiar y pegar al final de tu Markdown, en el mismo espíritu del taller 👇
-
----
-
-# 7. INTEGRACIÓN: Pull Requests y Code Review
-
-## 7.1 Flujo completo de Pull Request (PR)
-
-Este es el flujo estándar que seguiremos **SIEMPRE** para integrar cambios a `main`:
+### Verificación local
 
 ```bash
-# 1. Asegurarte de estar en main actualizado
-git checkout main
-git pull origin main
+# Iniciar servidor
+otree devserver
 
-# 2. Crear rama de feature a partir de main
-git checkout -b feature/nombre-claro-de-la-feature
+# Probar el flujo completo con 3 navegadores/pestañas
+# 1. Cada jugador contribuye diferentes cantidades
+# 2. Ver que IntermediateResults muestra contribuciones correctas
+# 3. Asignar diferentes cantidades de castigo
+# 4. Verificar que FinalResults muestra cálculos correctos
 
-# 3. Trabajar, hacer cambios y commits pequeños
-# (editar archivos, correr otree devserver, etc.)
-
-git status      # Ver qué cambió
-git add archivo1 archivo2
-git commit -m "feat: mensaje descriptivo"
-
-# 4. Subir la rama al remoto
-git push -u origin feature/nombre-claro-de-la-feature
+# Casos de prueba:
+# - Jugador que no castiga (costo = 0)
+# - Jugador que castiga al máximo (verificar límite de puntos)
+# - Jugador que recibe castigo de múltiples jugadores
 ```
 
-Luego, en GitHub:
+### Crear Pull Request
 
-1. Abrir el repositorio → verás un banner: **“Compare & pull request”** → click.
-2. Completar el PR:
+**Title:**
+```
+feat(public_goods): Implementa sistema de castigo basado en Fehr & Gächter (2000)
+```
 
-   * **Base branch:** `main`
-   * **Compare:** `feature/nombre-claro-de-la-feature`
-   * **Title:** mensaje claro, e.g.
-     `feat(public_goods): agrega etapa de castigo`
-   * **Body:** usar la plantilla del taller:
-
-     * Descripción
-     * Cambios realizados
-     * Testing
-     * Screenshots (si aplica)
-3. En el cuerpo del PR, enlazar el issue:
-   `Closes #X`
-4. Asignar:
-
-   * **Reviewers**: al menos 1 persona del taller.
-   * **Labels**: `feature`, `enhancement`, `ci/cd`, etc.
-   * **Milestone**: por ejemplo `v1.0 - MVP Public Goods Game`.
-
-A partir de ahí:
-
-* Se disparará el workflow de **GitHub Actions** (sección 9).
-* No se puede hacer merge hasta que:
-
-  * ✅ Pasen todos los checks de CI.
-  * ✅ Haya al menos 1 aprobación de review.
-  * ✅ La rama esté up-to-date con `main`.
-
----
-
-## 7.2 Checklist de revisión (para quien revisa el PR)
-
-Cuando haces **code review**, NO es solo ver si “se ve bonito”. Usa esta checklist:
-
+**Body:**
 ```markdown
-### Checklist de revisión
+## Descripción
+Implementa la etapa de castigo del Public Goods Game siguiendo el diseño de Fehr & Gächter (2000).
 
-- [ ] El PR está vinculado a un issue (`Closes #X`)
-- [ ] El título del PR describe claramente el cambio
-- [ ] La rama tiene un nombre descriptivo (`feature/...`, `fix/...`, etc.)
-- [ ] El cambio compila y corre localmente (`otree devserver`)
-- [ ] Los tests pasan localmente (`otree test` si aplica)
-- [ ] No hay warnings/lints graves (ruff / flake8)
-- [ ] El cambio es atómico (una sola cosa; no mezcla features sin relación)
-- [ ] La lógica del juego (oTree) sigue siendo consistente (pagos, tratamientos, etc.)
-- [ ] Los templates HTML no rompen el flujo de oTree
-- [ ] Variables y constantes tienen nombres claros (sin “magic numbers”)
-- [ ] Se actualizaron comentarios/documentación si hubo cambios importantes
-- [ ] No hay credenciales ni secretos en el código
+## Diseño del mecanismo
+| Parámetro | Valor |
+|-----------|-------|
+| Costo por punto | 1 |
+| Efecto por punto | 3 |
+| Ratio | 1:3 |
+| Máximo por jugador | 10 puntos |
+
+## Nuevo flujo
+```
+Contribute → ResultsWaitPage → IntermediateResults → Punishment → PunishmentWaitPage → FinalResults
 ```
 
-### Prompt sugerido para IA (revisor)
+## Cambios
+- Nuevos campos: `punishment_to_X`, `total_punishment_sent/received`, `cost_of_punishment`, etc.
+- Función `calculate_final_payoffs` con lógica de castigo
+- 3 nuevos templates con UI interactiva
+- JavaScript para cálculo dinámico de costos en Punishment
 
-> **Modelo recomendado:** GPT-5.1 Thinking
-> **Uso típico:** revisar diffs grandes o lógicos (oTree, pagos, tratamiento experimental).
+## Testing
+- [x] Cálculos de payoff correctos
+- [x] Límite de castigo funciona
+- [x] Validación de puntos suficientes
+- [x] UI responsiva
 
-```text
-Actúa como un revisor senior de código en un laboratorio de economía experimental.
+## Referencias
+- Fehr, E., & Gächter, S. (2000). Cooperation and punishment in public goods experiments. American Economic Review.
 
-Tengo un Pull Request en un proyecto de oTree que implementa [describir la feature: castigo, nuevos tratamientos, visualización, etc.].
-
-Objetivo:
-- Quiero que evalúes si la lógica económica, la implementación en oTree y la estructura del código son razonables.
-- Señala:
-  - Posibles bugs
-  - Asunciones peligrosas
-  - Problemas de legibilidad
-  - Cosas que deberían probarse con `otree test`
-
-Contexto:
-- Es un Public Goods Game con [detalles relevantes].
-- La rama se llama [nombre de la rama].
-- El diff incluye cambios en:
-  - `public_goods/__init__.py`
-  - Templates HTML
-  - (Otros archivos si aplica)
-
-OUTPUT:
-1. Resumen de qué hace el PR.
-2. Lista de posibles problemas o preguntas para el autor.
-3. Sugerencias concretas de mejora (nombres, estructura, validaciones).
-4. Tests o escenarios que te gustaría que el autor verifique antes de hacer merge.
+Closes #4
 ```
 
 ---
 
-## 7.3 Proceso de merge
+# PARTE 4: INTEGRACIÓN - PULL REQUESTS Y CODE REVIEW
 
-Una vez que el PR:
+## 4.1 Flujo de Pull Requests
 
-* ✅ Tiene al menos 1 aprobación
-* ✅ Pasó todos los checks de CI
-* ✅ No tiene conflictos con `main`
+### Anatomía de un buen Pull Request
 
-Entonces:
+```
+┌─────────────────────────────────────────────────────────────┐
+│  TÍTULO: tipo(scope): descripción concisa                   │
+│  Ejemplo: feat(public_goods): agrega sistema de castigo     │
+├─────────────────────────────────────────────────────────────┤
+│  DESCRIPCIÓN:                                               │
+│  ## ¿Qué hace este PR?                                      │
+│  - Resumen de cambios                                       │
+│                                                             │
+│  ## ¿Por qué?                                               │
+│  - Contexto y motivación                                    │
+│                                                             │
+│  ## ¿Cómo probarlo?                                         │
+│  - Pasos para verificar                                     │
+│                                                             │
+│  ## Screenshots (si aplica)                                 │
+│  - Capturas de UI                                           │
+│                                                             │
+│  Closes #N                                                  │
+├─────────────────────────────────────────────────────────────┤
+│  LABELS: feature, priority: high, assigned: nombre          │
+│  REVIEWERS: @colaborador1, @colaborador2                    │
+│  MILESTONE: v1.0 - MVP Public Goods Game                    │
+└─────────────────────────────────────────────────────────────┘
+```
 
-1. El revisor (o el responsable del módulo) hace click en **“Merge pull request”**.
+### Proceso paso a paso
 
-   * Recomendado: **“Squash and merge”** para que todo el trabajo quede en un solo commit limpio en `main`.
-2. Tras el merge:
+1. **Antes de crear el PR:**
+   ```bash
+   # Asegurarse de que la rama está actualizada
+   git checkout main
+   git pull origin main
+   git checkout feature/mi-rama
+   git rebase main  # O merge, según preferencia del equipo
+   ```
 
-   * GitHub ofrecerá **“Delete branch”** → borrar la rama remota.
-3. Localmente, el autor puede limpiar:
+2. **Resolver conflictos si los hay:**
+   ```bash
+   # Si hay conflictos durante rebase
+   # Editar archivos conflictivos
+   git add .
+   git rebase --continue
+   ```
+
+3. **Push y crear PR:**
+   ```bash
+   git push -u origin feature/mi-rama
+   # Ir a GitHub y crear PR
+   ```
+
+---
+
+## 4.2 Checklist de Code Review
+
+### Para el Reviewer
+
+Usar esta checklist al revisar PRs:
+
+#### Funcionalidad
+- [ ] ¿El código hace lo que dice el issue?
+- [ ] ¿Funciona correctamente? (probarlo localmente)
+- [ ] ¿Maneja casos edge correctamente?
+- [ ] ¿Los mensajes de error son claros?
+
+#### Código
+- [ ] ¿El código es legible y bien organizado?
+- [ ] ¿Los nombres de variables/funciones son descriptivos?
+- [ ] ¿Hay código duplicado que debería refactorizarse?
+- [ ] ¿Los comentarios son útiles (no obvios)?
+
+#### oTree específico
+- [ ] ¿Se usa la sintaxis de oTree 5 (no oTree 3)?
+- [ ] ¿Los campos del modelo tienen validación apropiada?
+- [ ] ¿Los templates usan la sintaxis correcta de Django/Jinja2?
+- [ ] ¿El `page_sequence` está en orden lógico?
+
+#### Testing
+- [ ] ¿Se puede probar el flujo completo sin errores?
+- [ ] ¿El servidor inicia correctamente (`otree devserver`)?
+- [ ] ¿Los datos se guardan correctamente?
+
+### Cómo dejar feedback
+
+**Comentarios constructivos:**
+```
+✅ BIEN: "Este cálculo podría dar error si contribution es None. 
+         ¿Qué tal agregar validación?"
+
+❌ MAL:  "Esto está mal."
+```
+
+**Tipos de comentarios:**
+- 🔴 **Blocker:** Debe arreglarse antes de merge
+- 🟡 **Sugerencia:** Mejoraría el código pero no es crítico
+- 🟢 **Nitpick:** Estilo o preferencia personal
+- 💬 **Pregunta:** Aclaración o duda
+
+---
+
+## 4.3 Proceso de Merge
+
+### Antes del merge (checklist)
+
+- [ ] Al menos 1 aprobación de reviewer
+- [ ] Todos los comentarios resueltos
+- [ ] CI/CD pasa (cuando esté configurado)
+- [ ] Rama actualizada con main
+
+### Tipos de merge
+
+| Tipo | Cuándo usar | Comando |
+|------|-------------|---------|
+| **Merge commit** | PRs con múltiples commits importantes | Botón "Merge" en GitHub |
+| **Squash and merge** | PRs con muchos commits pequeños | Botón "Squash and merge" |
+| **Rebase and merge** | Mantener historial lineal | Botón "Rebase and merge" |
+
+**Recomendación para este taller:** Usar **Squash and merge** para mantener historial limpio.
+
+### Después del merge
 
 ```bash
-# Volver a main y actualizar
+# Localmente, actualizar main
 git checkout main
 git pull origin main
 
-# Borrar rama local
-git branch -d feature/nombre-claro-de-la-feature
+# Eliminar rama local (opcional)
+git branch -d feature/mi-rama
+
+# Eliminar rama remota (si no se borró automáticamente)
+git push origin --delete feature/mi-rama
 ```
 
 ---
 
-# 8. CONFLICTOS: Escenarios de Resolución
+## 4.4 Ejercicio Práctico: Review Cruzado
 
-## 8.1 Conflicto 1: Mismo archivo, misma línea
+### Asignación de reviews
 
-### Situación típica
+| PR de | Lo revisa |
+|-------|-----------|
+| Mauricio (Instrucciones) | José Miguel |
+| José Miguel (Parámetros) | Sergio |
+| Sergio (Resultados) | Donovan |
+| Donovan (Castigo) | Mauricio |
 
-Dos personas editan **la misma línea** en `public_goods/__init__.py` (por ejemplo, modifican `PLAYERS_PER_GROUP` o la fórmula de `set_payoffs`). Al hacer `git pull` o al intentar hacer merge del PR, aparece un conflicto.
+### Pasos del ejercicio
 
-Ejemplo de conflicto en el archivo:
+1. **Cada persona crea su PR** (siguiendo el módulo asignado)
+
+2. **Ir al PR asignado para review:**
+   - GitHub → Pull requests → Seleccionar el PR asignado
+   - Click en "Files changed"
+
+3. **Hacer checkout de la rama para probar localmente:**
+   ```bash
+   git fetch origin
+   git checkout -b review/nombre-feature origin/feature/nombre-feature
+   otree devserver
+   # Probar la funcionalidad
+   ```
+
+4. **Dejar al menos 3 comentarios:**
+   - 1 comentario positivo (algo que está bien hecho)
+   - 1 pregunta o sugerencia
+   - 1 comentario sobre algo que mejorar (si aplica)
+
+5. **Aprobar o solicitar cambios:**
+   - "Files changed" → "Review changes"
+   - Escribir resumen
+   - Seleccionar: Approve / Request changes / Comment
+   - Submit review
+
+6. **El autor del PR:**
+   - Responde a comentarios
+   - Hace cambios si es necesario
+   - Push de cambios adicionales
+   - Re-solicita review si hubo "Request changes"
+
+7. **Merge cuando esté aprobado**
+
+---
+
+# PARTE 5: RESOLUCIÓN DE CONFLICTOS
+
+## 5.1 ¿Cuándo ocurren conflictos?
+
+Los conflictos ocurren cuando:
+- Dos personas modifican las mismas líneas del mismo archivo
+- Una persona elimina un archivo que otra modificó
+- Cambios en archivos binarios
+
+### Escenarios de conflicto en este taller
+
+| Escenario | Probabilidad | Archivos |
+|-----------|--------------|----------|
+| Modificación de `page_sequence` | Alta | `__init__.py` |
+| Cambios en clase `Player` | Media | `__init__.py` |
+| Imports duplicados | Baja | `__init__.py` |
+| Cambios en `settings.py` | Media | `settings.py` |
+
+---
+
+## 5.2 Ejercicio: Conflicto Simulado
+
+### Setup del conflicto
+
+**Facilitador:** Crear un commit en main que modifique `page_sequence`:
+
+```bash
+git checkout main
+# Editar __init__.py para agregar una página dummy
+git add .
+git commit -m "chore: agrega página temporal para simular conflicto"
+git push origin main
+```
+
+**Participante (ej. Mauricio):**
+```bash
+git checkout feature/instrucciones-comprension
+git fetch origin
+git rebase origin/main
+# Conflicto aparecerá
+```
+
+### Anatomía de un conflicto
 
 ```python
-class C(BaseConstants):
-    NAME_IN_URL = 'public_goods'
+page_sequence = [
 <<<<<<< HEAD
-    PLAYERS_PER_GROUP = 3
+    Introduction,
+    Comprehension,
+    Contribute,
 =======
-    PLAYERS_PER_GROUP = 4
->>>>>>> feature/cambios-grupo
-```
-
-### Pasos para resolver (localmente)
-
-```bash
-# Estás en tu rama de feature
-git pull --rebase origin main
-# (o GitHub te avisa del conflicto en el PR)
-```
-
-1. Abrir el archivo con conflicto (`public_goods/__init__.py`).
-2. Buscar las marcas:
-
-   * `<<<<<<< HEAD`
-   * `=======`
-   * `>>>>>>> rama-remota`
-3. Decidir qué dejar:
-
-   * ¿Debe ser 3, 4, o una configuración desde `settings.py`?
-4. Editar manualmente para que quede una sola versión coherente:
-
-```python
-class C(BaseConstants):
-    NAME_IN_URL = 'public_goods'
-    PLAYERS_PER_GROUP = 3  # Decisión final después de discutir con el equipo
-```
-
-5. Marcar el conflicto como resuelto:
-
-```bash
-git add public_goods/__init__.py
-
-# Si estabas haciendo rebase:
-git rebase --continue
-
-# Si estabas en un merge normal:
-git commit
-git push
-```
-
-### Prompt sugerido para IA (ayuda en conflicto puntual)
-
-```text
-Estoy resolviendo un conflicto de merge en `public_goods/__init__.py` de un juego de bienes públicos en oTree.
-
-Te pego las dos versiones de la sección en conflicto:
-[pegar bloque con <<<<<<< HEAD, =======, >>>>>>> feature/... aquí]
-
-Contexto:
-- La rama main tiene [describir].
-- Mi rama feature hace [describir].
-
-Quiero que:
-1. Me propongas una versión final coherente con la lógica económica del experimento.
-2. Expliques brevemente por qué esa versión es mejor que las alternativas.
-3. Señales si debo ajustar algo más en el código para que todo sea consistente (por ejemplo, en settings.py o en los templates).
-```
-
----
-
-## 8.2 Conflicto 2: Dependencias entre features
-
-### Escenario típico
-
-* La rama `feature/parametros-tratamientos` introduce parámetros configurables (`multiplier`, `endowment`, `players_per_group` en `settings.py` y `__init__.py`).
-* La rama `feature/resultados-graficos` quiere mostrar `mpcr` y usar esos parámetros.
-* Si se desarrolla `resultados-graficos` sin actualizarse desde `parametros-tratamientos`, el código puede:
-
-  * Romperse (atributos inexistentes).
-  * Compilar, pero mostrar datos inconsistentes.
-
-### Estrategia recomendada
-
-1. **Ordenar merges**:
-
-   * Primero mergear la rama más “fundacional” (ej: parámetros y treatments).
-   * Luego, rebasar o actualizar las otras ramas encima de `main`.
-
-```bash
-# Una vez que `feature/parametros-tratamientos` se mergeó a main
-
-git checkout feature/resultados-graficos
-git pull --rebase origin main   # trae cambios de main (incluye parámetros nuevos)
-# Resolver conflictos si aparecen
-git push --force-with-lease
-```
-
-2. **Verificar dependencias**:
-
-   * ¿La página Results está usando los nuevos campos (`treatment_mpcr`, etc.)?
-   * ¿El cálculo de `mpcr` es coherente con la lógica central de C y settings?
-
-3. **Prueba cruzada**:
-
-   * Correr `otree devserver` con ambos tratamientos.
-   * Correr `otree test` (cuando haya bots) para detectar errores que no se ven en una sola corrida.
-
----
-
-## 8.3 Conflicto 3: Conflicto en `constants.py` (o en la clase `C`)
-
-Aunque en este taller usamos una clase `C(BaseConstants)` dentro de `__init__.py`, en proyectos más grandes suele haber un archivo `constants.py` central. Es un lugar donde los conflictos son frecuentes:
-
-* Dos ramas definen la misma constante con valores distintos.
-* Dos ramas agregan constantes con nombres parecidos para lo mismo.
-
-### Ejemplo de conflicto conceptual
-
-* Rama A (castigo):
-  `PUNISHMENT_MAX_POINTS = 10`
-* Rama B (otra feature):
-  `MAX_POINTS_PER_PLAYER = 5`
-
-Ambas hablan de “máximo de puntos”, pero no están coordinadas.
-
-### Estrategia de resolución
-
-1. **Unificar semántica antes que “ganar la pelea”**:
-
-   * Sentarse (literal o virtualmente) a decidir:
-
-     * ¿Cuál es el máximo que queremos de verdad?
-     * ¿Necesitamos 2 constantes distintas o solo una bien nombrada?
-
-2. **Refactorizar nombres**:
-
-   * En vez de tener:
-
-     * `MAX_POINTS_PER_PLAYER`
-     * `PUNISHMENT_MAX_POINTS`
-   * Definir algo como:
-
-     * `PUNISHMENT_MAX_POINTS = 10  # Máximo de puntos de castigo por jugador objetivo`
-   * Y usarlo en todos lados.
-
-3. **Actualizar referencias**:
-
-   * Buscar dónde se usan esas constantes y cambiar al nuevo nombre.
-   * Correr tests para asegurarse de no haber roto nada.
-
-### Prompt sugerido para IA (conflicto de constantes)
-
-```text
-Tengo un conflicto de diseño en el archivo de constantes de un experimento en oTree.
-
-Versión 1 (rama A):
-[pegar bloque de código con constantes de la rama A]
-
-Versión 2 (rama B):
-[pegar bloque de código con constantes de la rama B]
-
-Contexto:
-- Estas ramas implementan [describir brevemente].
-- La constante X se usa en [archivo(s)].
-- La constante Y se usa en [archivo(s)].
-
-Quiero que:
-1. Propongas un conjunto final de constantes con nombres claros y sin redundancia.
-2. Especifiques para qué se usa cada constante (comentarios cortos).
-3. Señales si hay riesgos de romper algo al unificar (por ejemplo, cambiar el valor del multiplicador o del costo del castigo).
-```
-
----
-
-# 9. GITHUB ACTIONS (OBLIGATORIO)
-
-En este taller, **es obligatorio** tener un workflow mínimo de CI que:
-
-1. **Se ejecute en cada PR hacia `main`.**
-2. **Valide la sintaxis Python.**
-3. **Corra tests básicos de oTree** (cuando los tengamos listos).
-
----
-
-## 9.1 Workflow de CI básico
-
-Crear el archivo:
-`.github/workflows/ci.yml`
-
-```yaml
-name: CI
-
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-jobs:
-  ci:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          else
-            pip install "otree>=5" "ruff"
-          fi
-
-      - name: Lint with ruff
-        run: |
-          ruff check .
-
-      - name: Validate Python syntax
-        run: |
-          python -m compileall .
-
-      - name: Run oTree tests
-        run: |
-          otree test
-```
-
-### ¿Qué hace cada paso?
-
-* **checkout**: baja el código del repo a la máquina virtual.
-* **setup-python**: elige la versión de Python (3.11).
-* **Install dependencies**:
-
-  * Si hay `requirements.txt`, lo respeta.
-  * Si no, instala al menos `otree` y `ruff`.
-* **ruff check**: linter rápido de Python (estilo, errores comunes).
-* **compileall**: intenta compilar todos los `.py` → falla si hay errores de sintaxis.
-* **otree test**: corre tests de oTree (cuando haya bots configurados; si no, se puede ajustar para que solo valide apps específicas).
-
----
-
-## 9.2 Tests automáticos con oTree
-
-A futuro (o en una versión extendida del taller):
-
-* Podrán definir **bots** en `tests.py` dentro de cada app (`public_goods/tests.py`).
-* `otree test public_goods` correrá esos bots y verificará:
-
-  * Que el flujo de páginas no truena.
-  * Que los cálculos de payoff se comportan como se espera en escenarios básicos.
-
-Mientras tanto, podemos dejar:
-
-```yaml
-      - name: Run oTree tests
-        run: |
-          otree test public_goods
-```
-
-Y ajustar cuando se agreguen más apps.
-
----
-
-## 9.3 Validación de sintaxis Python
-
-Además del linter (`ruff`), el paso:
-
-```yaml
-python -m compileall .
-```
-
-sirve como red de seguridad:
-
-* Si algún archivo `.py` tiene errores de sintaxis (por ejemplo, paréntesis mal cerrado, indentación inválida), el workflow **falla**.
-* Con las reglas de **branch protection**, eso significa:
-
-  * ❌ No se puede hacer merge del PR hasta que se arregle el error.
-
----
-
-### Prompt sugerido para IA (diseño / ajuste de workflow de CI)
-
-```text
-Quiero diseñar / ajustar un workflow de GitHub Actions para un proyecto de oTree 5.
-
-Objetivo del workflow:
-1. Ejecutarse en cada push y pull_request a main.
-2. Instalar dependencias desde requirements.txt (si existe).
-3. Lint con ruff.
-4. Validar sintaxis Python (compileall).
-5. Correr `otree test public_goods`.
-
-Contexto:
-- El repositorio se llama [nombre del repo].
-- La versión objetivo de Python es 3.11.
-- Estoy trabajando en un taller de economía experimental (Public Goods Game).
-
-Te paso mi workflow actual:
-[pegar contenido actual de ci.yml]
-
-Quiero que:
-1. Lo revises y corrijas si hay errores.
-2. Mejores nombres y mensajes de los pasos para que sean claros para estudiantes.
-3. Propongas variantes opcionales (por ejemplo, solo correr tests en pull_request, no en cada push).
-```
-
----
-
-perfecto, vamos a dejar **todo cableado** para que:
-
-* `otree test public_goods` funcione desde ya ✅
-* el workflow de GitHub Actions lo corra en cada PR ✅
-
-Te doy solo lo que falta agregar al Markdown (sección 9 extendida) y el código listo para copiar/pegar en tu repo.
-
----
-
-## 9.4 Archivos necesarios para que CI funcione hoy mismo
-
-Para que el paso:
-
-```yaml
-- name: Run oTree tests
-  run: |
-    otree test public_goods
-```
-
-funcione sin tocar nada más, necesitamos:
-
-1. Un `requirements.txt` básico.
-2. Un archivo `public_goods/tests.py` con un bot funcional.
-3. (Opcional pero recomendado) Verificar que las `SESSION_CONFIGS` incluyan `public_goods`.
-
----
-
-### 9.4.1 Crear `requirements.txt`
-
-En la raíz del repositorio (`taller-otree-pgg/`), crear un archivo llamado:
-
-`requirements.txt`:
-
-```text
-otree>=5.10,<6.0
-ruff>=0.4
-```
-
-> Si más adelante agregan otras dependencias (por ejemplo, librerías para análisis de datos), se agregan aquí.
-
-Con esto, el paso de instalación en GitHub Actions:
-
-```yaml
-- name: Install dependencies
-  run: |
-    python -m pip install --upgrade pip
-    if [ -f requirements.txt ]; then
-      pip install -r requirements.txt
-    else
-      pip install "otree>=5" "ruff"
-    fi
-```
-
-ya instala todo lo necesario.
-
----
-
-### 9.4.2 Crear `public_goods/tests.py` (bots para el juego)
-
-Ahora definimos bots para el app `public_goods`.
-Este bot:
-
-* Recorre el flujo completo:
-
-  `Introduction -> Comprehension -> Contribute -> Results -> Punishment -> FinalResults`
-
-* Usa **tres casos de prueba**:
-
-  * `min`: todos contribuyen 0.
-  * `basic`: todos contribuyen la mitad de la dotación.
-  * `max`: todos contribuyen toda la dotación.
-
-* No aplica castigo (todos asignan 0 puntos), de modo que:
-
-  * `payoff_before_punishment == payoff_after_punishment == payoff esperado`.
-
-Crea el archivo:
-`public_goods/tests.py` con este contenido:
-
-```python
-from otree.api import Bot, Submission, SubmissionMustFail, expect
-
-from . import pages
-from .models import C
-
-
-class PlayerBot(Bot):
-    """
-    Bots para el Public Goods Game con etapa de castigo.
-
-    Casos:
-    - 'min': todos contribuyen 0
-    - 'basic': todos contribuyen la mitad de la dotación
-    - 'max': todos contribuyen toda la dotación
-
-    No se envía castigo (castigo enviado = 0), así que:
-    payoff_before_punishment == payoff_after_punishment == payoff final.
-    """
-
-    cases = ['basic', 'min', 'max']
-
-    def play_round(self):
-        # Parámetros relevantes (se adaptan a lo que haya en settings.py)
-        session = self.session
-        endowment = session.config.get('endowment', C.ENDOWMENT)
-        multiplier = session.config.get('multiplier', C.MULTIPLIER)
-        n_players = session.config.get('players_per_group', C.PLAYERS_PER_GROUP)
-
-        # --- Flujo de páginas ---
-
-        # 1) Introducción (sin formulario)
-        yield pages.Introduction
-
-        # 2) Preguntas de comprensión (usamos las respuestas correctas esperadas)
-        #    Según la implementación propuesta en el módulo 3.1:
-        #    comp_q1 = C.ENDOWMENT (100)
-        #    comp_q2 = 150 (3 jugadores x 50)
-        #    comp_q3 = 100 (300/3)
-        yield pages.Comprehension, dict(
-            comp_q1=C.ENDOWMENT,
-            comp_q2=150,
-            comp_q3=100,
-        )
-
-        # 3) Contribución según el caso
-        if self.case == 'min':
-            contribution = 0
-        elif self.case == 'max':
-            contribution = int(endowment)
-        else:  # 'basic'
-            contribution = int(endowment / 2)
-
-        yield pages.Contribute, dict(contribution=contribution)
-
-        # 4) Resultados del juego base (sin castigo todavía)
-        yield pages.Results
-
-        # --- Cálculo del payoff esperado antes de castigo ---
-
-        # En cada test case, TODOS los jugadores usan la misma "case",
-        # por lo que las contribuciones son simétricas:
-        # total_contributed = contribution * n_players
-        total_contributed = contribution * n_players
-        individual_share = total_contributed * multiplier / n_players
-        expected_payoff_base = endowment - contribution + individual_share
-
-        # Verificamos que el payoff_before_punishment coincide con el cálculo teórico
-        expect(self.player.payoff_before_punishment, expected_payoff_base)
-
-        # 5) Etapa de castigo: asignamos 0 puntos a todos los demás
-        #    (no hay costos ni impactos de castigo)
-        punishment_form = {}
-
-        # Campos en Player: punish_1, punish_2, punish_3
-        # No podemos castigarnos a nosotros mismos.
-        if self.player.id_in_group == 1:
-            punishment_form = dict(punish_2=0, punish_3=0)
-        elif self.player.id_in_group == 2:
-            punishment_form = dict(punish_1=0, punish_3=0)
-        elif self.player.id_in_group == 3:
-            punishment_form = dict(punish_1=0, punish_2=0)
-
-        # Si en el futuro hay más jugadores, se puede generalizar,
-        # pero con PLAYERS_PER_GROUP = 3 esto es suficiente.
-        yield pages.Punishment, punishment_form
-
-        # 6) WaitPage que aplica el castigo (apply_punishment)
-        #    -> no se rinde aquí, se maneja internamente en oTree.
-        #    (No se escribe yield para PunishmentWaitPage)
-
-        # 7) Resultados finales después del castigo
-        yield pages.FinalResults
-
-        # Con castigo = 0, el payoff final debe ser igual al payoff base
-        expect(self.player.punishment_sent_total, 0)
-        expect(self.player.punishment_received_total, 0)
-
-        expect(self.player.payoff_after_punishment, expected_payoff_base)
-        expect(self.player.payoff, expected_payoff_base)
-```
-
-> Nota:
->
-> * No usamos `SubmissionMustFail` por ahora para mantener el bot simple.
-> * Más adelante pueden extender este archivo para:
->
->   * Probar validación de comprensión.
->   * Probar castigo positivo y checar que los payoffs se ajustan correctamente.
-
-Con esto, `otree test public_goods` ya tiene **algo real** que ejecutar.
-
----
-
-### 9.4.3 Ajustes recomendados en `settings.py` (para tests)
-
-En `settings.py`, asegúrate de que al menos UNA `SESSION_CONFIG` incluya `public_goods` en `app_sequence`. Con lo que ya habíamos propuesto, basta con algo así:
-
-```python
-SESSION_CONFIGS = [
-    dict(
-        name='public_goods_high_mpcr',
-        display_name="Public Goods - High MPCR (0.67)",
-        app_sequence=['public_goods'],
-        num_demo_participants=3,
-        endowment=100,
-        multiplier=2.0,
-        players_per_group=3,
-        # Para browser bots (opcional):
-        use_browser_bots=False,
-        doc="""
-        Tratamiento con MPCR alto (0.67).
-        """
-    ),
-    dict(
-        name='public_goods_low_mpcr',
-        display_name="Public Goods - Low MPCR (0.40)",
-        app_sequence=['public_goods'],
-        num_demo_participants=3,
-        endowment=100,
-        multiplier=1.2,
-        players_per_group=3,
-        use_browser_bots=False,
-        doc="""
-        Tratamiento con MPCR bajo (0.40).
-        """
-    ),
+    DummyPage,  # Página del facilitador
+    Contribute,
+>>>>>>> origin/main
+    ResultsWaitPage,
+    Results,
 ]
 ```
 
-> Para el CI con `otree test public_goods` no es necesario `use_browser_bots=True`; eso es solo si quieres que los bots se jueguen en navegador.
-> Para **command-line bots** (los que usamos en CI) basta con `tests.py` + que la app exista.
+**Explicación:**
+- `<<<<<<< HEAD`: Tu versión (la rama actual)
+- `=======`: Separador
+- `>>>>>>> origin/main`: Versión de main
+
+### Resolución paso a paso
+
+1. **Identificar el conflicto:**
+   ```bash
+   git status
+   # Muestra: "both modified: public_goods/__init__.py"
+   ```
+
+2. **Abrir el archivo en VS Code:**
+   - VS Code resalta los conflictos
+   - Opciones: "Accept Current", "Accept Incoming", "Accept Both"
+
+3. **Resolver manualmente (combinar ambos cambios):**
+   ```python
+   page_sequence = [
+       Introduction,      # De tu rama
+       Comprehension,     # De tu rama
+       DummyPage,         # De main (si queremos mantenerlo)
+       Contribute,
+       ResultsWaitPage,
+       Results,
+   ]
+   ```
+
+4. **Marcar como resuelto:**
+   ```bash
+   git add public_goods/__init__.py
+   git rebase --continue
+   # O si era merge: git commit
+   ```
+
+5. **Push forzado (si rebaseaste):**
+   ```bash
+   git push --force-with-lease origin feature/instrucciones-comprension
+   ```
 
 ---
 
-### 9.4.4 Versión final recomendada de `ci.yml` (resumen)
+## 5.3 Escenarios de Conflicto Adicionales
 
-Por claridad, dejo aquí el `ci.yml` completo ya alineado con lo anterior:
+### Escenario A: Conflicto en constants.py
+
+**Situación:** Mauricio y José Miguel ambos agregan constantes.
+
+```python
+# Mauricio agrega:
+COMPREHENSION_REQUIRED = True
+
+# José Miguel agrega:
+DEFAULT_MULTIPLIER = 2.0
+```
+
+**Resolución:** Mantener ambas constantes, ordenar alfabéticamente.
+
+### Escenario B: Conflicto en imports
+
+**Situación:** Sergio y Donovan ambos agregan imports.
+
+```python
+<<<<<<< HEAD
+import json
+from otree.api import *
+=======
+from otree.api import *
+import math
+>>>>>>> origin/main
+```
+
+**Resolución:**
+```python
+import json
+import math
+from otree.api import *
+```
+
+### Escenario C: Conflicto en settings.py SESSION_CONFIGS
+
+**Situación:** Múltiples tratamientos agregados por diferentes personas.
+
+```python
+<<<<<<< HEAD
+SESSION_CONFIGS = [
+    dict(name='high_mpcr', ...),
+    dict(name='low_mpcr', ...),
+]
+=======
+SESSION_CONFIGS = [
+    dict(name='with_punishment', ...),
+]
+>>>>>>> origin/main
+```
+
+**Resolución:** Combinar todos los tratamientos:
+```python
+SESSION_CONFIGS = [
+    dict(name='high_mpcr', ...),
+    dict(name='low_mpcr', ...),
+    dict(name='with_punishment', ...),
+]
+```
+
+---
+
+## 5.4 Mejores Prácticas para Evitar Conflictos
+
+1. **Comunicación:** Avisar cuando trabajas en un archivo compartido
+2. **Pull frecuente:** `git pull origin main` antes de empezar a trabajar
+3. **Commits pequeños:** Más fáciles de mergear
+4. **Archivos separados:** Cuando sea posible, trabajar en archivos diferentes
+5. **Merge/rebase frecuente:** No dejar que las ramas diverjan mucho
+
+---
+
+# PARTE 6: GITHUB ACTIONS (CI/CD)
+
+## 6.1 Introducción a GitHub Actions
+
+GitHub Actions permite automatizar tareas cuando ocurren eventos en el repositorio.
+
+### Conceptos clave
+
+| Concepto | Descripción |
+|----------|-------------|
+| **Workflow** | Proceso automatizado definido en YAML |
+| **Job** | Conjunto de steps que se ejecutan en el mismo runner |
+| **Step** | Tarea individual (ejecutar comando, usar action) |
+| **Action** | Componente reutilizable (ej. checkout, setup-python) |
+| **Runner** | Servidor que ejecuta los workflows |
+| **Event** | Disparador del workflow (push, PR, etc.) |
+
+---
+
+## 6.2 Crear el Workflow CI
+
+### Paso 1: Crear estructura de directorios
+
+```bash
+mkdir -p .github/workflows
+```
+
+### Paso 2: Crear archivo de workflow
+
+Crear `.github/workflows/ci.yml`:
 
 ```yaml
-name: CI
+# .github/workflows/ci.yml
+name: CI - oTree Public Goods
 
+# Cuándo ejecutar el workflow
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
 
+# Trabajos a ejecutar
 jobs:
-  ci:
+  lint-and-test:
+    name: Lint & Test
     runs-on: ubuntu-latest
-
+    
     steps:
+      # 1. Checkout del código
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      
+      # 2. Configurar Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-
+          python-version: '3.11'
+      
+      # 3. Instalar dependencias
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          else:
-            pip install "otree>=5" "ruff"
+          pip install otree
+          pip install ruff  # Linter moderno y rápido
+      
+      # 4. Verificar sintaxis Python con Ruff
+      - name: Lint with Ruff
+        run: |
+          ruff check . --select=E,F --ignore=E501
+      
+      # 5. Verificar que oTree puede leer la configuración
+      - name: Validate oTree config
+        run: |
+          otree check
+      
+      # 6. Intentar iniciar el servidor (test básico)
+      - name: Test server startup
+        run: |
+          timeout 10 otree devserver || code=$?
+          if [ $code -eq 124 ]; then
+            echo "Server started successfully (timed out as expected)"
+            exit 0
+          else
+            echo "Server failed to start"
+            exit 1
           fi
-
-      - name: Lint with ruff
-        run: |
-          ruff check .
-
-      - name: Validate Python syntax
-        run: |
-          python -m compileall .
-
-      - name: Run oTree tests (public_goods)
-        run: |
-          otree test public_goods
 ```
 
-Con:
+### Prompt sugerido para personalizar el workflow
 
-* `requirements.txt` ✅
-* `public_goods/tests.py` ✅
-* `SESSION_CONFIGS` con `public_goods` ✅
+> **Modelo recomendado:** Claude Sonnet 4.5  
+> **Justificación:** Configuración de CI/CD es una tarea bien definida con patrones establecidos. Sonnet es suficiente y más rápido.
 
-ya tienes la integración **GitHub Actions + tests automáticos de oTree** funcionando “de fábrica” en este taller.
+```
+Eres un experto en GitHub Actions y CI/CD para proyectos Python/oTree.
+
+CONTEXTO:
+Tengo un workflow básico de CI para oTree que hace:
+- Lint con Ruff
+- Validación de config con `otree check`
+- Test de inicio de servidor
+
+NECESITO AGREGAR:
+1. Cache de pip para acelerar builds
+2. Ejecutar `otree test` si hay bots definidos
+3. Notificación de Slack cuando falla (opcional)
+4. Badge de status para el README
+
+RESTRICCIONES:
+- Usar acciones oficiales de GitHub cuando sea posible
+- Mantener el workflow simple y legible
+- El workflow debe completar en menos de 3 minutos
+
+OUTPUT:
+Archivo ci.yml completo con las mejoras solicitadas.
+```
+
+---
+
+## 6.3 Configuración Adicional: Ruff
+
+Crear archivo de configuración `ruff.toml` en la raíz:
+
+```toml
+# ruff.toml
+# Configuración de Ruff para el proyecto oTree
+
+[lint]
+# Reglas a verificar
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # isort (imports)
+    "B",    # flake8-bugbear
+]
+
+# Reglas a ignorar
+ignore = [
+    "E501",  # line too long (oTree a veces tiene líneas largas)
+    "E402",  # module level import not at top (común en oTree)
+]
+
+# Archivos a excluir
+exclude = [
+    "__pycache__",
+    ".git",
+    "db.sqlite3",
+    "_static_root",
+]
+
+[lint.per-file-ignores]
+# Ignorar import order en __init__.py de oTree
+"*/__init__.py" = ["I001"]
+```
+
+---
+
+## 6.4 Agregar Badge al README
+
+Crear o actualizar `README.md`:
+
+```markdown
+# Taller Git/GitHub - Public Goods Game
+
+![CI Status](https://github.com/[USUARIO]/taller-otree-pgg/actions/workflows/ci.yml/badge.svg)
+
+## Descripción
+
+Implementación del Public Goods Game con sistema de castigo para el taller de Git/GitHub.
+
+## Instalación
+
+```bash
+git clone git@github.com:[USUARIO]/taller-otree-pgg.git
+cd taller-otree-pgg
+pip install otree
+otree devserver
+```
+
+## Tratamientos
+
+| Nombre | MPCR | Multiplicador |
+|--------|------|---------------|
+| high_mpcr | 0.67 | 2.0 |
+| low_mpcr | 0.40 | 1.2 |
+
+## Estructura del juego
+
+1. Instrucciones
+2. Preguntas de comprensión
+3. Contribución
+4. Resultados intermedios
+5. Etapa de castigo
+6. Resultados finales
+
+## Referencia
+
+Fehr, E., & Gächter, S. (2000). Cooperation and punishment in public goods experiments. American Economic Review, 90(4), 980-994.
+```
+
+---
+
+## 6.5 Verificar GitHub Actions
+
+### En GitHub
+
+1. Ir a **Actions** tab en el repositorio
+2. Ver el workflow "CI - oTree Public Goods"
+3. Click en un run para ver detalles
+
+### Verificar status checks en PRs
+
+1. Crear un PR
+2. En la parte inferior, debería aparecer:
+   - ✅ `lint-and-test` — Successful
+   - O ❌ con detalles del error
+
+### Troubleshooting común
+
+| Error | Causa | Solución |
+|-------|-------|----------|
+| `otree: command not found` | pip install falló | Verificar `requirements.txt` |
+| Lint errors | Código no sigue estilo | Ejecutar `ruff check --fix .` localmente |
+| `otree check` falla | Error en settings.py | Verificar SESSION_CONFIGS |
+| Timeout en server test | Servidor no inicia | Revisar imports y errores de sintaxis |
+
+---
+
+## 6.6 Commits para GitHub Actions
+
+```bash
+# Crear estructura
+mkdir -p .github/workflows
+
+# Agregar workflow
+git add .github/workflows/ci.yml
+git commit -m "ci: agrega workflow de CI con lint y validación oTree"
+
+# Agregar configuración de Ruff
+git add ruff.toml
+git commit -m "chore: agrega configuración de Ruff linter"
+
+# Actualizar README
+git add README.md
+git commit -m "docs: agrega README con badge de CI y documentación"
+
+# Push
+git push origin main
+```
+
+---
+
+# PARTE 7: EJERCICIO FINAL DE INTEGRACIÓN
+
+## 7.1 Objetivo
+
+Integrar todos los módulos en una versión funcional del Public Goods Game con:
+- ✅ Instrucciones y comprensión
+- ✅ Parámetros configurables
+- ✅ Visualización de resultados
+- ✅ Sistema de castigo
+- ✅ CI/CD funcionando
+
+## 7.2 Orden de merge recomendado
+
+Para minimizar conflictos, seguir este orden:
+
+1. **Primero:** José Miguel - Parámetros y Tratamientos
+   - Base para los demás módulos
+   - Modifica principalmente `settings.py` y constantes
+
+2. **Segundo:** Mauricio - Instrucciones y Comprensión
+   - Agrega páginas al inicio del flujo
+   - Modifica `page_sequence`
+
+3. **Tercero:** Sergio - Resultados con Visualización
+   - Mejora página existente
+   - Puede necesitar ajustes por cambios anteriores
+
+4. **Cuarto:** Donovan - Sistema de Castigo
+   - Más cambios en `page_sequence`
+   - Mayor probabilidad de conflictos (resolver con cuidado)
+
+5. **Último:** Workflow de CI/CD
+   - Una vez que el código está estable
+
+## 7.3 Checklist de integración final
+
+Después de mergear todos los PRs:
+
+```bash
+# 1. Actualizar local
+git checkout main
+git pull origin main
+
+# 2. Verificar que todo funciona
+otree devserver
+
+# 3. Probar flujo completo
+# - Abrir 3 navegadores/pestañas
+# - Crear sesión de demo
+# - Completar todas las etapas
+# - Verificar resultados finales
+```
+
+### Verificación funcional
+
+- [ ] Página de instrucciones se muestra correctamente
+- [ ] Preguntas de comprensión validan respuestas
+- [ ] Contribución acepta valores válidos
+- [ ] Resultados intermedios muestran contribuciones
+- [ ] Castigo funciona con límites correctos
+- [ ] Resultados finales calculan payoffs correctamente
+- [ ] Gráfico de Chart.js renderiza
+- [ ] Ambos tratamientos (high/low MPCR) funcionan
+- [ ] CI/CD pasa en GitHub Actions
+
+## 7.4 Demostración final
+
+### Setup para demostración
+
+1. **Crear sesión de laboratorio:**
+   ```
+   http://localhost:8000/room/lab_session
+   ```
+
+2. **Compartir links con participantes:**
+   - Cada participante abre el link en su navegador
+   - Esperar a que todos estén conectados
+
+3. **Ejecutar el experimento:**
+   - Facilitador puede monitorear en Admin
+   - Ver resultados en tiempo real
+
+### Métricas a observar
+
+- Tiempo promedio por página
+- Distribución de contribuciones
+- Uso del sistema de castigo
+- Diferencias entre tratamientos
+
+---
+
+# APÉNDICES
+
+## A. Comandos Git de referencia rápida
+
+```bash
+# Configuración
+git config --global user.name "Tu Nombre"
+git config --global user.email "tu@email.com"
+
+# Básicos
+git status                    # Ver estado
+git add .                     # Agregar todos los cambios
+git commit -m "mensaje"       # Commit con mensaje
+git push                      # Subir cambios
+git pull                      # Bajar cambios
+
+# Ramas
+git branch                    # Listar ramas
+git checkout -b nueva-rama    # Crear y cambiar a rama
+git checkout main             # Cambiar a main
+git merge otra-rama           # Mergear rama
+
+# Resolución de conflictos
+git fetch origin              # Traer cambios sin mergear
+git rebase main               # Rebasar sobre main
+git rebase --continue         # Continuar después de resolver
+git rebase --abort            # Cancelar rebase
+
+# Histórico
+git log --oneline             # Ver commits resumidos
+git log --graph               # Ver con gráfico de ramas
+git diff                      # Ver cambios no committeados
+```
+
+## B. Estructura final del proyecto
+
+```
+taller-otree-pgg/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── public_goods/
+│   ├── __init__.py
+│   └── templates/
+│       └── public_goods/
+│           ├── Introduction.html
+│           ├── Comprehension.html
+│           ├── Contribute.html
+│           ├── IntermediateResults.html
+│           ├── Punishment.html
+│           ├── FinalResults.html
+│           └── Results.html
+├── settings.py
+├── ruff.toml
+├── README.md
+├── .gitignore
+└── requirements.txt
+```
+
+## C. Recursos adicionales
+
+### Documentación oficial
+- [oTree 5 Documentation](https://otree.readthedocs.io/en/latest/)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [Git Book](https://git-scm.com/book/en/v2)
+
+### Papers de referencia
+- Fehr, E., & Gächter, S. (2000). Cooperation and punishment in public goods experiments. *American Economic Review*, 90(4), 980-994.
+- Fehr, E., & Gächter, S. (2002). Altruistic punishment in humans. *Nature*, 415(6868), 137-140.
+
+### Herramientas recomendadas
+- [VS Code](https://code.visualstudio.com/) con extensiones:
+  - Python
+  - GitLens
+  - GitHub Pull Requests
+- [Sourcetree](https://www.sourcetreeapp.com/) - GUI para Git
+- [Chart.js](https://www.chartjs.org/) - Documentación de gráficos
+
+---
+
+## D. Solución de problemas comunes
+
+| Problema | Causa probable | Solución |
+|----------|----------------|----------|
+| `ModuleNotFoundError: otree` | oTree no instalado | `pip install otree` |
+| Template not found | Ruta incorrecta | Verificar estructura de carpetas |
+| CSRF error | Falta {% csrf_token %} | Agregar en formularios (aunque oTree lo maneja automático) |
+| Payoff es None | set_payoffs no ejecutado | Verificar WaitPage con `after_all_players_arrive` |
+| Chart.js no renderiza | CDN bloqueado | Verificar conexión a internet |
+| GitHub Actions falla | Error de sintaxis YAML | Validar indentación |
+| Push rechazado | Branch protection | Crear PR en lugar de push directo |
+| Merge conflict | Cambios paralelos | Resolver conflictos manualmente |
+
+---
+
+**¡Fin del taller! 🎉**
+
+*Documento generado para el taller interactivo de Git/GitHub con oTree*
+*Versión: 1.0*
+*Fecha: [Fecha del taller]*
