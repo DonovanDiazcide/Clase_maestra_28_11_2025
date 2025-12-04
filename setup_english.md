@@ -9,7 +9,7 @@ Before we begin, here's a summary of what you'll install:
 | Tool | What it does
 |------|--------------|
 | **Git** | Save different versions of your code and collaborate with others | Like "infinite ctrl+Z" + Google Docs for code |
-| **Python** | The programming language we'll use, the channel you use to talk to the computer and ask her to follow you instructions|
+| **Python** | The programming language we’ll use is the channel you use to talk to the computer and ask it to follow your instructions.|
 | **VS Code** | Editor where you'll write code | Like Microsoft Word, but for programmers |
 | **oTree** | Tool for creating economic experiments | A "ready-to-use template" that makes your work easier |
 | **SSH with GitHub** | Connect your computer to GitHub without passwords | Like saving your Netflix password so you don't type it every time |
