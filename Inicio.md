@@ -307,45 +307,43 @@ Esto debería abrir VS Code en la carpeta donde estás.
 
 ## ¿Qué es oTree?
 
-oTree es un **framework** (conjunto de herramientas) construido con Python que facilita crear experimentos económicos y juegos interactivos online. En lugar de programar todo desde cero, oTree te da plantillas y funciones listas para usar.
+oTree es un **framework** (conjunto de herramientas) para crear experimentos económicos y de ciencias sociales. Es como una "plantilla" que ya tiene muchas cosas listas:
+- Interfaz web donde los participantes responden
+- Sistema de roles y rondas
+- Base de datos para guardar respuestas
+- Herramientas para exportar datos
 
 ---
 
 ## Instalación
 
-**Dónde ejecutar estos comandos**:
-- Windows: Command Prompt
-- Mac/Linux: Terminal
+oTree se instala usando `pip`, que es el instalador de paquetes de Python.
 
-**Paso 1: Actualizar pip**
+**Dónde ejecutar**:
+- Windows: **Command Prompt**
+- Mac/Linux: **Terminal**
 
-`pip` es el "instalador de paquetes" de Python (como una tienda de apps para programas de Python).
-
+**Comando**:
 ```bash
-pip install --upgrade pip
+pip install otree
 ```
 
-*En Linux, si te da error, usa*:
+O si tu sistema usa `pip3`:
 ```bash
-pip install --upgrade pip --break-system-packages
+pip3 install otree
 ```
 
-**Paso 2: Instalar oTree**
+**¿Qué pasará?**  
+Verás texto desfilando mientras se descargan e instalan varios componentes. Esto puede tomar 1-2 minutos.
 
+**En Linux, si ves un error sobre "externally-managed-environment"**:
 ```bash
-pip install "otree>=5,<6"
-```
-
-Esto descargará e instalará oTree versión 5 (puede tardar 1-2 minutos).
-
-*En Linux, si te da error, usa*:
-```bash
-pip install "otree>=5,<6" --break-system-packages
+pip install otree --break-system-packages
 ```
 
 ---
 
-## ✅ Verificar la instalación
+## ✅ Verificar que oTree se instaló correctamente
 
 **Comando**:
 ```bash
@@ -353,47 +351,156 @@ otree --version
 ```
 
 **¿Qué deberías ver?**  
-`5.10.4` (o cualquier versión que empiece con 5)
+`5.10.4` (o cualquier versión 5.X.X)
 
-✅ Si ves un número 5.X.X = ¡éxito!
+✅ Si ves la versión = ¡éxito!
+
+---
+
+# 4.5. Crear tu cuenta de GitHub
+
+## ¿Qué es GitHub?
+
+GitHub es una **plataforma en línea** donde puedes:
+- 📦 Guardar tus proyectos de código (repositorios)
+- 👥 Colaborar con otras personas
+- 📜 Ver el historial completo de cambios
+- 🔄 Sincronizar tu trabajo entre diferentes computadoras
+
+Piensa en GitHub como "Google Drive para código" o "Dropbox con superpoderes para programadores".
+
+---
+
+## Paso 1: Crear tu cuenta de GitHub
+
+**Es completamente gratis** (existe una versión de pago con funciones extra, pero no la necesitaremos).
+
+### Instrucciones:
+
+1. **Abre tu navegador** y ve a: **https://github.com**
+
+2. **Haz clic en "Sign up"** (Registrarse) en la esquina superior derecha
+
+3. **Completa el formulario** con la siguiente información:
+   - **Email**: Usa un correo que revises frecuentemente
+   - **Password**: Crea una contraseña segura (mínimo 15 caracteres o 8 con un número y una letra minúscula)
+   - **Username**: Elige un nombre de usuario
+     - 💡 **Consejo**: Usa algo profesional (evita nombres muy casuales)
+     - 💡 Este nombre aparecerá en tus repositorios públicos
+     - Ejemplos buenos: `maria-rodriguez`, `carlos-datos`, `ana-economista`
+     - Ejemplos a evitar: `chicagamer123`, `elpepe2024`
+
+4. **Verificación humana**:
+   - GitHub te pedirá resolver un pequeño acertijo para verificar que no eres un robot
+
+5. **Verifica tu correo**:
+   - GitHub enviará un código de verificación a tu correo
+   - Revisa tu bandeja de entrada y copia el código
+   - Pégalo en GitHub
+
+6. **Personalización (opcional)**:
+   - GitHub te hará algunas preguntas sobre cómo planeas usar la plataforma
+   - Puedes responderlas o hacer clic en "Skip personalization" (Omitir personalización)
+
+¡Listo! Ya tienes tu cuenta de GitHub. 🎉
+
+---
+
+## Paso 2: Configurar tu nombre y correo en Git (local)
+
+Antes de continuar con SSH, necesitas decirle a Git quién eres (esto aparecerá en tus commits).
+
+**Dónde ejecutar**:
+- Windows: **Command Prompt** o **Git Bash**
+- Mac/Linux: **Terminal**
+
+**Comandos** (reemplaza con TU información):
+
+```bash
+git config --global user.name "Tu Nombre"
+git config --global user.email "tu_correo@ejemplo.com"
+```
+
+**Ejemplo real**:
+```bash
+git config --global user.name "María Rodríguez"
+git config --global user.email "maria.rodriguez@universidad.edu"
+```
+
+**⚠️ Importante**: 
+- Usa el **mismo correo** que usaste para crear tu cuenta de GitHub
+- El nombre puede ser tu nombre real o tu username de GitHub
+
+**Verificar que se guardó**:
+```bash
+git config --global user.name
+git config --global user.email
+```
+
+Deberías ver tu nombre y correo.
+
+---
+
+## ¿Por qué necesitamos una cuenta de GitHub?
+
+Durante el taller:
+- 📥 Descargaremos (clonaremos) proyectos de ejemplo desde GitHub
+- 📤 Subiremos nuestro código a GitHub para compartirlo
+- 🔑 Usaremos SSH para conectarnos sin escribir contraseña cada vez
+
+**Siguiente paso**: Ahora que ya tienes tu cuenta, configuraremos SSH para que tu computadora se pueda conectar a GitHub de forma segura y automática.
 
 ---
 
 # 5. Configurar SSH con GitHub
 
-## ¿Qué es SSH y para qué lo necesito?
+## ¿Qué es SSH y por qué lo necesito?
 
-**SSH** es un método seguro para conectar tu computadora con GitHub. Una vez configurado:
-- ✅ Podrás subir y descargar código sin escribir contraseña
-- ✅ Es más seguro que usar contraseñas
-- ✅ GitHub lo recomienda
+**SSH** (Secure Shell) es un protocolo que te permite conectarte de forma segura a servidores remotos.
 
-**Analogía simple**: Es como registrar tu huella digital en tu teléfono. La primera vez toma un poco de tiempo configurarlo, pero después es automático y más seguro.
+**¿Por qué usar SSH con GitHub?**
+
+Cuando trabajas con GitHub, hay dos formas de conectarte:
+1. **HTTPS**: Requiere escribir tu usuario y contraseña cada vez que subes o descargas código
+2. **SSH**: Una vez configurado, te conectas automáticamente (sin contraseñas)
+
+Usaremos SSH porque es:
+- ✅ Más rápido (no escribes contraseña cada vez)
+- ✅ Más seguro (usa encriptación de clave pública/privada)
+- ✅ La opción recomendada por GitHub
 
 ---
 
 ## Paso 1: Verificar si ya tienes llaves SSH
 
+Antes de crear llaves nuevas, verifica si ya tienes algunas.
+
 **Dónde ejecutar**:
-- Windows: **Git Bash** (NO uses Command Prompt para SSH)
+- Windows: **Git Bash**
 - Mac/Linux: Terminal
 
 **Comando**:
 ```bash
-ls ~/.ssh
+ls -al ~/.ssh
 ```
 
-**¿Qué significa esto?**  
-- `ls` = "list" (mostrar)
-- `~/.ssh` = una carpeta oculta donde se guardan las llaves SSH
+**¿Qué deberías ver?**
 
-**Posibles resultados**:
+**Si NO tienes llaves** (es lo más común si nunca has usado SSH):
+```
+ls: cannot access '/Users/tu_usuario/.ssh': No such file or directory
+```
+→ Continúa con el Paso 2
 
-1. **Ves archivos como** `id_ed25519` y `id_ed25519.pub`  
-   → Ya tienes llaves SSH, puedes saltar al Paso 4
-
-2. **Dice "No such file or directory"**  
-   → No tienes llaves SSH, continúa al Paso 2
+**Si YA tienes llaves**:
+Verás archivos como:
+```
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+```
+→ Puedes usar las existentes (salta al Paso 4) o crear nuevas
 
 ---
 
@@ -683,7 +790,7 @@ Este tutorial se basa en las documentaciones oficiales:
 ---
 
 **Última actualización**: Diciembre 2024  
-**Versión**: 3.0 - Simplificada para principiantes
+**Versión**: 3.1 - Actualizada con sección de GitHub
 
 ---
 
