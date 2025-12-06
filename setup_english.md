@@ -9,7 +9,7 @@ Before we begin, here's a summary of what you'll install:
 | Tool | What it does
 |------|--------------|
 | **Git** | Save different versions of your code and collaborate with others | Like "infinite ctrl+Z" + Google Docs for code |
-| **Python** | The programming language we’ll use is the channel you use to talk to the computer and ask it to follow your instructions.|
+| **Python** | The programming language we'll use is the channel you use to talk to the computer and ask it to follow your instructions.|
 | **VS Code** | Editor where you'll write code | Like Microsoft Word, but for programmers |
 | **oTree** | Tool for creating economic experiments | A "ready-to-use template" that makes your work easier |
 | **SSH with GitHub** | Connect your computer to GitHub without passwords | Like saving your Netflix password so you don't type it every time |
@@ -311,45 +311,43 @@ This should open VS Code in the folder where you are.
 
 ## What is oTree?
 
-oTree is a **framework** (set of tools) built with Python that makes it easy to create economic experiments and interactive games online. Instead of programming everything from scratch, oTree gives you ready-to-use templates and functions.
+oTree is a **framework** (set of tools) for creating economic and social science experiments. It's like a "template" that already has many things ready:
+- Web interface where participants respond
+- System for roles and rounds
+- Database to save responses
+- Tools to export data
 
 ---
 
 ## Installation
 
-**Where to run these commands**:
-- Windows: Command Prompt
-- Mac/Linux: Terminal
+oTree is installed using `pip`, which is Python's package installer.
 
-**Step 1: Update pip**
+**Where to run**:
+- Windows: **Command Prompt**
+- Mac/Linux: **Terminal**
 
-`pip` is Python's "package installer" (like an app store for Python programs).
-
+**Command**:
 ```bash
-pip install --upgrade pip
+pip install otree
 ```
 
-*On Linux, if you get an error, use*:
+Or if your system uses `pip3`:
 ```bash
-pip install --upgrade pip --break-system-packages
+pip3 install otree
 ```
 
-**Step 2: Install oTree**
+**What will happen?**  
+You'll see text scrolling as various components are downloaded and installed. This can take 1-2 minutes.
 
+**On Linux, if you see an error about "externally-managed-environment"**:
 ```bash
-pip install "otree>=5,<6"
-```
-
-This will download and install oTree version 5 (may take 1-2 minutes).
-
-*On Linux, if you get an error, use*:
-```bash
-pip install "otree>=5,<6" --break-system-packages
+pip install otree --break-system-packages
 ```
 
 ---
 
-## ✅ Verify the installation
+## ✅ Verify oTree installed correctly
 
 **Command**:
 ```bash
@@ -357,47 +355,156 @@ otree --version
 ```
 
 **What should you see?**  
-`5.10.4` (or any version starting with 5)
+`5.10.4` (or any version 5.X.X)
 
-✅ If you see a number 5.X.X = success!
+✅ If you see the version = success!
 
 ---
 
-# 5. Configure SSH with GitHub
+# 4.5. Create Your GitHub Account
+
+## What is GitHub?
+
+GitHub is an **online platform** where you can:
+- 📦 Store your code projects (repositories)
+- 👥 Collaborate with other people
+- 📜 View the complete change history
+- 🔄 Synchronize your work across different computers
+
+Think of GitHub as "Google Drive for code" or "Dropbox with superpowers for programmers."
+
+---
+
+## Step 1: Create Your GitHub Account
+
+**It's completely free** (there's a paid version with extra features, but we won't need it).
+
+### Instructions:
+
+1. **Open your browser** and go to: **https://github.com**
+
+2. **Click "Sign up"** in the top right corner
+
+3. **Complete the form** with the following information:
+   - **Email**: Use an email you check frequently
+   - **Password**: Create a strong password (minimum 15 characters or 8 with a number and a lowercase letter)
+   - **Username**: Choose a username
+     - 💡 **Tip**: Use something professional (avoid very casual names)
+     - 💡 This name will appear on your public repositories
+     - Good examples: `maria-rodriguez`, `carlos-data`, `ana-economist`
+     - Examples to avoid: `chicagamer123`, `thepepe2024`
+
+4. **Human verification**:
+   - GitHub will ask you to solve a small puzzle to verify you're not a robot
+
+5. **Verify your email**:
+   - GitHub will send a verification code to your email
+   - Check your inbox and copy the code
+   - Paste it into GitHub
+
+6. **Personalization (optional)**:
+   - GitHub will ask you some questions about how you plan to use the platform
+   - You can answer them or click "Skip personalization"
+
+Done! You now have your GitHub account. 🎉
+
+---
+
+## Step 2: Configure Your Name and Email in Git (local)
+
+Before continuing with SSH, you need to tell Git who you are (this will appear in your commits).
+
+**Where to run**:
+- Windows: **Command Prompt** or **Git Bash**
+- Mac/Linux: **Terminal**
+
+**Commands** (replace with YOUR information):
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "your_email@example.com"
+```
+
+**Real example**:
+```bash
+git config --global user.name "Maria Rodriguez"
+git config --global user.email "maria.rodriguez@university.edu"
+```
+
+**⚠️ Important**: 
+- Use the **same email** you used to create your GitHub account
+- The name can be your real name or your GitHub username
+
+**Verify it was saved**:
+```bash
+git config --global user.name
+git config --global user.email
+```
+
+You should see your name and email.
+
+---
+
+## Why do we need a GitHub account?
+
+During the workshop:
+- 📥 We'll download (clone) example projects from GitHub
+- 📤 We'll upload our code to GitHub to share it
+- 🔑 We'll use SSH to connect without typing a password every time
+
+**Next step**: Now that you have your account, we'll configure SSH so your computer can connect to GitHub securely and automatically.
+
+---
+
+# 5. Set Up SSH with GitHub
 
 ## What is SSH and why do I need it?
 
-**SSH** is a secure method to connect your computer with GitHub. Once configured:
-- ✅ You can upload and download code without typing your password
-- ✅ It's more secure than using passwords
-- ✅ GitHub recommends it
+**SSH** (Secure Shell) is a protocol that allows you to connect securely to remote servers.
 
-**Simple analogy**: It's like registering your fingerprint on your phone. The first time takes a bit of time to set up, but then it's automatic and more secure.
+**Why use SSH with GitHub?**
+
+When working with GitHub, there are two ways to connect:
+1. **HTTPS**: Requires typing your username and password every time you upload or download code
+2. **SSH**: Once configured, you connect automatically (no passwords)
+
+We'll use SSH because it's:
+- ✅ Faster (you don't type a password every time)
+- ✅ More secure (uses public/private key encryption)
+- ✅ The option recommended by GitHub
 
 ---
 
-## Step 1: Check if you already have SSH keys
+## Step 1: Verify if you already have SSH keys
+
+Before creating new keys, check if you already have some.
 
 **Where to run**:
-- Windows: **Git Bash** (DON'T use Command Prompt for SSH)
+- Windows: **Git Bash**
 - Mac/Linux: Terminal
 
 **Command**:
 ```bash
-ls ~/.ssh
+ls -al ~/.ssh
 ```
 
-**What does this mean?**  
-- `ls` = "list" (show)
-- `~/.ssh` = a hidden folder where SSH keys are stored
+**What should you see?**
 
-**Possible results**:
+**If you DON'T have keys** (most common if you've never used SSH):
+```
+ls: cannot access '/Users/your_username/.ssh': No such file or directory
+```
+→ Continue with Step 2
 
-1. **You see files like** `id_ed25519` and `id_ed25519.pub`  
-   → You already have SSH keys, you can skip to Step 4
-
-2. **It says "No such file or directory"**  
-   → You don't have SSH keys, continue to Step 2
+**If you ALREADY have keys**:
+You'll see files like:
+```
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+```
+→ You can use the existing ones (skip to Step 4) or create new ones
 
 ---
 
@@ -687,7 +794,7 @@ This tutorial is based on official documentation:
 ---
 
 **Last updated**: December 2024  
-**Version**: 3.0 - Simplified for beginners
+**Version**: 3.1 - Updated with GitHub section
 
 ---
 
