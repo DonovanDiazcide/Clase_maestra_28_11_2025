@@ -126,7 +126,6 @@ Después de clonar, la estructura debe ser:
 
 ```
 taller-otree-pgg/
-├── __init__.py
 ├── settings.py
 ├── public_goods/
 │   ├── __init__.py
