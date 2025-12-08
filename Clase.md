@@ -42,7 +42,7 @@ Hi [tu-usuario]! You've successfully authenticated, but GitHub does not provide 
 
 ---
 
-## 1.2 Creación del Repositorio (Solo el Facilitador)
+## 1.2 Creación del Repositorio (Solo el Facilitador). quitar esta sección. Solamente José Miguel
 
 ### Paso 1: Crear proyecto oTree base
 
