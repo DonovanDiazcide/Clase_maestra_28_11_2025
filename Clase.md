@@ -63,38 +63,6 @@ otree startproject .
 # Inicializar Git
 git init
 
-# Crear archivo .gitignore
-cat > .gitignore << 'EOF'
-# oTree
-__pycache__/
-*.pyc
-db.sqlite3
-.otree/
-_static_root/
-*.csv
-
-# Python
-*.egg-info/
-dist/
-build/
-.eggs/
-*.egg
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Environment
-.env
-venv/
-EOF
-
 # Primer commit
 git add .
 git commit -m "feat: inicializa proyecto oTree con Public Goods Game"
