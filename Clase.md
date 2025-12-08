@@ -6,7 +6,7 @@
 |-------|-------|
 | **Duración estimada** | 3-4 horas |
 | **Participantes** | Mauricio, José Miguel, Sergio, Donovan |
-| **Nivel** | Intermedio (conocimiento básico de Git requerido) |
+| **Nivel** | Intermedio (conocimiento básico de Git requerido) agregar 5 líneas con los comandos de git|
 | **Proyecto base** | Public Goods Game (oTree) |
 | **Referencia académica** | Fehr & Gächter (2000), "Cooperation and Punishment in Public Goods Experiments" |
 
