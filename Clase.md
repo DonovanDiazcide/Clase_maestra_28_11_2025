@@ -276,6 +276,7 @@ Implementar una página de instrucciones clara para el Public Goods Game y una p
 - [ ] Crear página `Comprehension.html` con 3 preguntas de validación
 - [ ] Agregar lógica de validación en `__init__.py`
 - [ ] Los participantes deben responder correctamente para continuar
+- [ ] Se visualiza la página "no more pages left" una vez que respondió el cuestionario sin errores. 
 
 ## Criterios de aceptación
 - Las instrucciones explican claramente el mecanismo del juego
