@@ -194,7 +194,7 @@ page_sequence = [Contribute, ResultsWaitPage, Results]
 
 # PARTE 2: CONFIGURACIÓN DE GITHUB
 
-## 2.1 Crear Milestones
+## 2.1 Crear Milestones, José Miguel y Mauricio
 
 Los Milestones agrupan issues relacionados y permiten trackear progreso.
 
