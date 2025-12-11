@@ -1511,18 +1511,3 @@ Este tutorial se basa en las documentaciones oficiales:
 **Versión**: 3.1 - Actualizada con sección de GitHub
 
 ---
-
-## Glosario de términos técnicos
-
-Si encuentras algún término que no entiendas, aquí está una guía rápida:
-
-| Término | Significado simple |
-|---------|-------------------|
-| **Terminal / Línea de comandos** | Ventana donde escribes instrucciones de texto |
-| **PATH** | Lista de carpetas donde tu computadora busca programas |
-| **SSH** | Método seguro para conectarse a servidores |
-| **Framework** | Conjunto de herramientas que facilitan programar |
-| **Repository** | Carpeta de proyecto guardada en GitHub |
-| **Clone** | Copiar un proyecto de GitHub a tu computadora |
-| **pip** | Instalador de paquetes para Python |
-| **Package** | Programa o herramienta adicional para Python |
