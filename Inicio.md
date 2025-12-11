@@ -708,9 +708,6 @@ Ahora puedes:
 - ✅ Escribir código en VS Code
 - ✅ Ejecutar oTree
 - ✅ Colaborar usando Git sin contraseñas
-
-**Estás listo para comenzar el taller.**
-
 ---
 
 # 6. Clonar el repositorio del taller
