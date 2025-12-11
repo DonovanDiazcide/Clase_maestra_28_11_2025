@@ -713,6 +713,392 @@ Ahora puedes:
 
 ---
 
+# 6. Clonar el repositorio del taller
+
+## ¿Qué significa "clonar" un repositorio?
+
+**Clonar** es simplemente descargar una copia completa de un proyecto desde GitHub a tu computadora. Es como hacer "copy-paste" de una carpeta, pero con superpoderes:
+
+- 📁 Copias todos los archivos del proyecto
+- 📜 Incluye todo el historial de cambios
+- 🔗 Mantiene la conexión con GitHub para futuras actualizaciones
+
+## ¿Qué repositorio vamos a clonar?
+
+Vamos a descargar el proyecto del taller:
+
+| Información | Detalle |
+|-------------|---------|
+| **Nombre del repositorio** | taller-otree-pgg |
+| **URL** | https://github.com/DonovanDiazcide/taller-otree-pgg |
+| **Contenido** | Archivos y ejemplos para el taller de oTree |
+
+---
+
+## Paso 1: Decidir dónde guardar el proyecto
+
+Antes de clonar, piensa en **dónde quieres guardar** el proyecto en tu computadora.
+
+### Recomendaciones:
+
+| Sistema | Ubicación sugerida | Ejemplo completo |
+|---------|-------------------|------------------|
+| Windows | Carpeta Documentos | `C:\Users\TuUsuario\Documents\taller-otree` |
+| macOS | Carpeta Documentos | `/Users/TuUsuario/Documents/taller-otree` |
+| Linux | Carpeta home | `/home/TuUsuario/taller-otree` |
+
+💡 **Consejo**: Evita ubicaciones con:
+- Espacios en el nombre de la carpeta (mejor `mi-proyecto` que `mi proyecto`)
+- Caracteres especiales como ñ, tildes, o símbolos
+- Carpetas sincronizadas como OneDrive o Dropbox (pueden causar conflictos)
+
+---
+
+## Paso 2: Abrir la terminal y navegar a la carpeta
+
+### 💻 En Windows
+
+**Opción A: Usar Git Bash (recomendado)**
+
+1. Abre el **Explorador de archivos**
+2. Navega hasta la carpeta donde quieres guardar el proyecto (por ejemplo, `Documentos`)
+3. Haz **clic derecho** dentro de la carpeta
+4. Selecciona **"Open Git Bash here"** o **"Git Bash Here"**
+
+   ![Git Bash aparecerá en el menú de clic derecho]
+
+5. Se abrirá Git Bash directamente en esa ubicación
+
+**Opción B: Navegar desde Git Bash manualmente**
+
+1. Abre **Git Bash** (tecla Windows → escribe "Git Bash" → Enter)
+2. Escribe este comando para ir a Documentos:
+   ```bash
+   cd ~/Documents
+   ```
+3. Presiona **Enter**
+
+**Opción C: Usar Command Prompt**
+
+1. Abre **Command Prompt** (tecla Windows → escribe "cmd" → Enter)
+2. Navega a tu carpeta de Documentos:
+   ```cmd
+   cd C:\Users\TuUsuario\Documents
+   ```
+   ⚠️ Reemplaza `TuUsuario` con tu nombre de usuario real de Windows
+3. Presiona **Enter**
+
+### 🍎 En macOS
+
+1. Abre **Terminal** (Aplicaciones → Utilidades → Terminal)
+2. Escribe este comando para ir a Documentos:
+   ```bash
+   cd ~/Documents
+   ```
+3. Presiona **Enter**
+
+### 🐧 En Linux
+
+1. Abre **Terminal**
+2. Escribe este comando para ir a tu carpeta home:
+   ```bash
+   cd ~
+   ```
+   O si prefieres una carpeta específica:
+   ```bash
+   cd ~/Documents
+   ```
+3. Presiona **Enter**
+
+---
+
+## Paso 3: (Opcional) Crear una carpeta específica para el taller
+
+Si quieres organizar mejor tus archivos, puedes crear una carpeta específica.
+
+### Comando para crear una carpeta:
+
+**En Git Bash, Terminal de Mac, o Linux:**
+```bash
+mkdir taller-otree
+cd taller-otree
+```
+
+**En Command Prompt de Windows:**
+```cmd
+mkdir taller-otree
+cd taller-otree
+```
+
+¿Qué hacen estos comandos?
+- `mkdir taller-otree` = **M**a**k**e **Dir**ectory → Crea una carpeta llamada "taller-otree"
+- `cd taller-otree` = **C**hange **D**irectory → Entra a esa carpeta
+
+---
+
+## Paso 4: Clonar el repositorio
+
+Ahora sí, ¡vamos a clonar!
+
+### Dónde ejecutar:
+- **Windows**: Git Bash (recomendado) o Command Prompt
+- **Mac/Linux**: Terminal
+
+### Comando:
+
+```bash
+git clone git@github.com:DonovanDiazcide/taller-otree-pgg.git
+```
+
+### ¿Qué significa este comando?
+
+| Parte del comando | Significado |
+|-------------------|-------------|
+| `git clone` | Instrucción para clonar un repositorio |
+| `git@github.com:` | Conexión SSH a GitHub |
+| `DonovanDiazcide/` | Usuario dueño del repositorio |
+| `taller-otree-pgg.git` | Nombre del repositorio |
+
+### ¿Qué deberías ver?
+
+```
+Cloning into 'taller-otree-pgg'...
+remote: Enumerating objects: XX, done.
+remote: Counting objects: 100% (XX/XX), done.
+remote: Compressing objects: 100% (XX/XX), done.
+remote: Total XX (delta X), reused XX (delta X), pack-reused X
+Receiving objects: 100% (XX/XX), XX.XX KiB | XX.XX MiB/s, done.
+Resolving deltas: 100% (X/X), done.
+```
+
+✅ Si ves este mensaje = ¡El repositorio se clonó exitosamente!
+
+---
+
+## Paso 5: Entrar a la carpeta del proyecto
+
+Después de clonar, se habrá creado una carpeta nueva con el nombre del repositorio.
+
+### Comando:
+
+```bash
+cd taller-otree-pgg
+```
+
+### Verificar que estás en la carpeta correcta:
+
+```bash
+ls
+```
+
+**En Windows Command Prompt usa:**
+```cmd
+dir
+```
+
+Deberías ver los archivos del proyecto (como `settings.py`, carpetas con los experimentos, etc.)
+
+---
+
+## Paso 6: Abrir el proyecto en VS Code
+
+Ahora que tienes el proyecto en tu computadora, ábrelo en VS Code para explorarlo.
+
+### Comando (desde la terminal, estando dentro de la carpeta del proyecto):
+
+```bash
+code .
+```
+
+El punto (`.`) significa "la carpeta actual".
+
+### ¿Qué debería pasar?
+VS Code se abrirá mostrando todos los archivos del proyecto en el panel izquierdo.
+
+### Alternativa manual:
+1. Abre VS Code
+2. Haz clic en **File** → **Open Folder** (o **Archivo** → **Abrir Carpeta**)
+3. Navega hasta la carpeta `taller-otree-pgg`
+4. Haz clic en **Seleccionar carpeta**
+
+---
+
+## ✅ Verificación: Confirmar que todo está listo
+
+Vamos a verificar que el repositorio se clonó correctamente y que oTree funciona.
+
+### 1. Verificar que estás en la carpeta correcta
+
+**Comando:**
+```bash
+pwd
+```
+
+**En Windows Command Prompt:**
+```cmd
+cd
+```
+
+**¿Qué deberías ver?**
+Una ruta que termine en `taller-otree-pgg`, por ejemplo:
+- Windows: `C:\Users\TuUsuario\Documents\taller-otree-pgg`
+- Mac: `/Users/TuUsuario/Documents/taller-otree-pgg`
+- Linux: `/home/TuUsuario/taller-otree-pgg`
+
+### 2. Ver los archivos del proyecto
+
+**Comando:**
+```bash
+ls -la
+```
+
+**En Windows Command Prompt:**
+```cmd
+dir
+```
+
+Deberías ver archivos como `settings.py` y otras carpetas del proyecto.
+
+### 3. (Opcional) Probar que oTree funciona con el proyecto
+
+Desde dentro de la carpeta del proyecto, ejecuta:
+
+```bash
+otree devserver
+```
+
+**¿Qué debería pasar?**
+- Verás mensajes mientras oTree inicia
+- Al final verás algo como: `Development server is running at http://127.0.0.1:8000/`
+- Abre tu navegador y ve a: **http://127.0.0.1:8000/**
+- Deberías ver la interfaz de oTree
+
+**Para detener el servidor:** Presiona `Ctrl + C` en la terminal.
+
+---
+
+## 🎉 ¡Felicidades!
+
+Si llegaste hasta aquí, ya tienes:
+
+✅ El repositorio del taller clonado en tu computadora  
+✅ Acceso a todos los archivos del proyecto  
+✅ El proyecto abierto en VS Code  
+✅ oTree listo para ejecutar los experimentos  
+
+**Estás completamente listo para el taller.**
+
+---
+
+## 🔧 Solución de problemas al clonar
+
+### Problema: "Permission denied (publickey)"
+
+```
+git@github.com: Permission denied (publickey).
+fatal: Could not read from remote repository.
+```
+
+**Causa:** Tu llave SSH no está configurada correctamente.
+
+**Solución:**
+1. Verifica que configuraste SSH (Sección 5 de este documento)
+2. Prueba tu conexión SSH:
+   ```bash
+   ssh -T git@github.com
+   ```
+3. Si no funciona, repite los pasos de la Sección 5
+
+### Problema: "Repository not found"
+
+```
+ERROR: Repository not found.
+fatal: Could not read from remote repository.
+```
+
+**Causa:** La URL del repositorio está mal escrita o el repositorio no existe.
+
+**Solución:**
+1. Verifica que escribiste el comando correctamente
+2. Copia y pega este comando exacto:
+   ```bash
+   git clone git@github.com:DonovanDiazcide/taller-otree-pgg.git
+   ```
+
+### Problema: "fatal: destination path 'taller-otree-pgg' already exists"
+
+```
+fatal: destination path 'taller-otree-pgg' already exists and is not an empty directory.
+```
+
+**Causa:** Ya existe una carpeta con ese nombre en la ubicación actual.
+
+**Solución:**
+- **Opción A:** Elimina la carpeta existente y clona de nuevo:
+  ```bash
+  rm -rf taller-otree-pgg
+  git clone git@github.com:DonovanDiazcide/taller-otree-pgg.git
+  ```
+- **Opción B:** Clona con un nombre diferente:
+  ```bash
+  git clone git@github.com:DonovanDiazcide/taller-otree-pgg.git taller-otree-nuevo
+  ```
+
+### Problema: Clonar funciona pero oTree da error
+
+**Causa:** Puede que falten dependencias del proyecto.
+
+**Solución:**
+1. Asegúrate de estar dentro de la carpeta del proyecto:
+   ```bash
+   cd taller-otree-pgg
+   ```
+2. Instala las dependencias si hay un archivo `requirements.txt`:
+   ```bash
+   pip install -r requirements.txt
+   ```
+   O en algunos sistemas:
+   ```bash
+   pip3 install -r requirements.txt
+   ```
+
+### Alternativa: Clonar usando HTTPS (si SSH no funciona)
+
+Si tienes problemas con SSH y necesitas clonar urgentemente, puedes usar HTTPS como alternativa:
+
+```bash
+git clone https://github.com/DonovanDiazcide/taller-otree-pgg.git
+```
+
+⚠️ **Nota:** Con HTTPS te pedirá tu usuario y contraseña de GitHub cada vez que interactúes con el repositorio. Por eso recomendamos SSH para el uso regular.
+
+---
+
+## Resumen de comandos
+
+Aquí tienes todos los comandos de esta sección en orden:
+
+```bash
+# 1. Ir a tu carpeta de Documentos
+cd ~/Documents
+
+# 2. (Opcional) Crear carpeta para el taller
+mkdir taller-otree
+cd taller-otree
+
+# 3. Clonar el repositorio
+git clone git@github.com:DonovanDiazcide/taller-otree-pgg.git
+
+# 4. Entrar a la carpeta del proyecto
+cd taller-otree-pgg
+
+# 5. Abrir en VS Code
+code .
+
+# 6. (Opcional) Probar oTree
+otree devserver
+```
+
 # 🔧 Solución de problemas comunes
 
 ## Problema: "command not found" o "no se reconoce como comando"
