@@ -184,58 +184,6 @@ pip --version
 ```
 Salida esperada: `pip 24.x.x from ... (python 3.11)`
 
-### El comando `python` vs `python3` vs `py` en Windows
-
-La documentación oficial aclara:
-
-> "A python3 command is also included that mimics the python command. It is intended to catch accidental uses of the typical POSIX command on Windows, but is not meant to be widely used or recommended."
-> — *Fuente: docs.python.org/3/using/windows.html*
-
-En Windows:
-- **`python`** → Comando principal recomendado
-- **`python3`** → Existe solo por compatibilidad con scripts de Linux/Mac
-- **`py`** → Python Launcher, útil si tienes múltiples versiones: `py -3.11`
-
-### Ambientes virtuales (venv) en Windows
-
-La documentación oficial recomienda usar ambientes virtuales:
-
-> "In general, we recommend that you create a virtual environment for each project and run <env>\Scripts\Activate in your terminal to use it."
-> — *Fuente: docs.python.org/3/using/windows.html*
-
-**Crear un ambiente virtual:**
-```cmd
-python -m venv mi_ambiente
-```
-
-**Activar en CMD:**
-```cmd
-mi_ambiente\Scripts\activate.bat
-```
-
-**Activar en PowerShell:**
-```powershell
-mi_ambiente\Scripts\Activate.ps1
-```
-
-**Nota para PowerShell:** Si aparece error de políticas de ejecución, la documentación indica:
-
-> "On Microsoft Windows, it may be required to enable the Activate.ps1 script by setting the execution policy for the user:
-> `PS C:\> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`"
-> — *Fuente: docs.python.org/3/library/venv.html*
-
-**Desactivar el ambiente:**
-```cmd
-deactivate
-```
-
-**Diferencia crucial Windows vs Mac/Linux:**
-
-| Sistema | Carpeta de scripts | Comando activar |
-|---------|-------------------|-----------------|
-| **Windows** | `Scripts\` | `venv\Scripts\activate` |
-| **Mac/Linux** | `bin/` | `source venv/bin/activate` |
-
 ### Caso MEDIANAMENTE HABITUAL: Problemas con Python
 
 **Problema: "python was not found" o abre Microsoft Store**
