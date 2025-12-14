@@ -141,7 +141,7 @@ Python es el lenguaje de programación en el que está escrito oTree. La elecci�
 
 ### Consideración fundamental: compatibilidad con oTree
 
-> *"This version of oTree is only compatible with these Python versions: 3.7, 3.8, 3.9, 3.10, 3.11"*
+> *"This version of oTree (la que usaremos para el taller) is only compatible with these Python versions: 3.7, 3.8, 3.9, 3.10, 3.11"*
 > — Mensaje de error de oTree / Foro oTreeHub
 
 **Python 3.12 y 3.13 NO son compatibles con oTree.** Por esta razón, la guía recomienda instalar específicamente **Python 3.11**, que es la versión más reciente compatible y tiene soporte activo.
