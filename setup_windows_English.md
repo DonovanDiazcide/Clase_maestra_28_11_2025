@@ -184,58 +184,6 @@ pip --version
 ```
 Expected output: `pip 24.x.x from ... (python 3.11)`
 
-### The `python` vs `python3` vs `py` command on Windows
-
-The official documentation clarifies:
-
-> "A python3 command is also included that mimics the python command. It is intended to catch accidental uses of the typical POSIX command on Windows, but is not meant to be widely used or recommended."
-> — *Source: docs.python.org/3/using/windows.html*
-
-On Windows:
-- **`python`** → Main recommended command
-- **`python3`** → Exists only for compatibility with Linux/Mac scripts
-- **`py`** → Python Launcher, useful if you have multiple versions: `py -3.11`
-
-### Virtual environments (venv) on Windows
-
-The official documentation recommends using virtual environments:
-
-> "In general, we recommend that you create a virtual environment for each project and run <env>\Scripts\Activate in your terminal to use it."
-> — *Source: docs.python.org/3/using/windows.html*
-
-**Create a virtual environment:**
-```cmd
-python -m venv my_environment
-```
-
-**Activate in CMD:**
-```cmd
-my_environment\Scripts\activate.bat
-```
-
-**Activate in PowerShell:**
-```powershell
-my_environment\Scripts\Activate.ps1
-```
-
-**Note for PowerShell:** If you get an execution policy error, the documentation indicates:
-
-> "On Microsoft Windows, it may be required to enable the Activate.ps1 script by setting the execution policy for the user:
-> `PS C:\> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`"
-> — *Source: docs.python.org/3/library/venv.html*
-
-**Deactivate the environment:**
-```cmd
-deactivate
-```
-
-**Crucial Windows vs Mac/Linux difference:**
-
-| System | Scripts folder | Activate command |
-|---------|---------------|-----------------|
-| **Windows** | `Scripts\` | `venv\Scripts\activate` |
-| **Mac/Linux** | `bin/` | `source venv/bin/activate` |
-
 ### MODERATELY COMMON Case: Python Problems
 
 **Problem: "python was not found" or opens Microsoft Store**
@@ -820,5 +768,6 @@ This automatically starts ssh-agent every time you open Git Bash.
 This guide provides a verified and documented path to set up a complete development environment on Windows 10/11. The most critical points to remember are:
 
 The **"Add Python to PATH"** option is absolutely essential during Python installation; without it, no Python commands will work properly. For oTree, use exclusively **Python 3.11.x** to avoid compatibility errors that can be difficult to diagnose. **Virtual environments** are not optional for serious projects; they protect your system from dependency conflicts. And finally, **Git Bash** is the preferred terminal for SSH operations because it follows exactly the official GitHub documentation.
+
 
 Always close and reopen terminals after modifying the PATH or installing new tools. This simple step avoids most "command not recognized" errors that frustrate beginners.
