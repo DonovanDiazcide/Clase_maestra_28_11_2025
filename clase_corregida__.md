@@ -645,12 +645,12 @@ Ejemplo: Mostrar tabla de contribuciones
 {{ block content }}
 <table>
     <tr><th>Jugador</th><th>Contribución</th></tr>
-    {{ for player in players_data }}
+    {% for player in players_data %}
     <tr>
         <td>Jugador {{ player.id }}</td>
         <td>{{ player.contribution }}</td>
     </tr>
-    {{ endfor }}
+    {% endfor %}
 </table>
 {{ endblock }}
 ```
