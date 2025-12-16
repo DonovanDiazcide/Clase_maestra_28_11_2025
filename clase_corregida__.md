@@ -437,6 +437,513 @@ page_sequence = [Contribute, ResultsWaitPage, Results]
 
 ---
 
+# PARTE 2.3: DE LA MODELACIÓN AL CÓDIGO - CÓMO PENSAR EN PROGRAMACIÓN
+
+Esta sección es **fundamental** para entender cómo traducir una idea económica/experimental a código funcional. Usaremos el Public Goods Game como ejemplo motivador.
+
+## 2.3.1 El Proceso Mental: De la Teoría al Código
+
+### 🎯 Paso 1: Identificar los Elementos del Modelo
+
+Cuando tienes un modelo económico o experimental, primero identifica estos elementos:
+
+| Elemento del Modelo | Pregunta Clave | Ejemplo en Public Goods |
+|---------------------|----------------|-------------------------|
+| **Agentes/Actores** | ¿Quiénes participan? | Jugadores individuales |
+| **Dotaciones/Recursos** | ¿Qué tienen al inicio? | 100 puntos cada uno |
+| **Decisiones** | ¿Qué eligen hacer? | Cuánto contribuir al fondo común |
+| **Interacciones** | ¿Cómo afecta uno a otros? | Contribuciones se suman y multiplican |
+| **Resultados** | ¿Cómo se calculan ganancias? | Fórmula: kept + share_from_fund |
+| **Secuencia** | ¿En qué orden pasa todo? | Decidir → Esperar → Ver resultados |
+
+### 🧩 Paso 2: Mapear Elementos a Componentes de oTree
+
+Ahora traducimos cada elemento del modelo a código oTree:
+
+#### **Agentes → Player class**
+
+**Modelo:** "Cada jugador tiene información individual"
+
+**Código:**
+```python
+class Player(BasePlayer):
+    contribution = models.CurrencyField()  # Decisión individual
+    payoff = models.CurrencyField()        # Resultado individual
+```
+
+**¿Por qué?** Cada instancia de `Player` representa un participante real. Los campos aquí son datos que varían entre participantes.
+
+---
+
+#### **Dotaciones/Parámetros → Constants class**
+
+**Modelo:** "Todos empiezan con 100 puntos, el multiplicador es 2"
+
+**Código:**
+```python
+class C(BaseConstants):
+    ENDOWMENT = cu(100)
+    MULTIPLIER = 2
+```
+
+**¿Por qué?** Estos valores NO cambian entre jugadores ni rondas. Son "reglas del juego".
+
+---
+
+#### **Interacciones/Grupo → Group class**
+
+**Modelo:** "Las contribuciones se suman entre todos los del grupo"
+
+**Código:**
+```python
+class Group(BaseGroup):
+    total_contribution = models.CurrencyField()
+    individual_share = models.CurrencyField()
+```
+
+**¿Por qué?** Los grupos guardan información que afecta a **todos** los miembros del grupo.
+
+---
+
+#### **Cálculos → Functions**
+
+**Modelo:** "Payoff = endowment - contribution + (total × multiplier / n)"
+
+**Código:**
+```python
+def set_payoffs(group: Group):
+    players = group.get_players()
+    contributions = [p.contribution for p in players]
+    group.total_contribution = sum(contributions)
+    group.individual_share = (group.total_contribution * C.MULTIPLIER) / C.PLAYERS_PER_GROUP
+    for p in players:
+        p.payoff = C.ENDOWMENT - p.contribution + group.individual_share
+```
+
+**¿Por qué?** Las funciones ejecutan la "lógica" del modelo: toman inputs y producen outputs.
+
+---
+
+#### **Secuencia → Pages + page_sequence**
+
+**Modelo:** "Primero deciden, luego esperan, después ven resultados"
+
+**Código:**
+```python
+class Contribute(Page):      # Decisión
+    form_model = 'player'
+    form_fields = ['contribution']
+
+class ResultsWaitPage(WaitPage):  # Sincronización
+    after_all_players_arrive = set_payoffs
+
+class Results(Page):         # Resultados
+    pass
+
+page_sequence = [Contribute, ResultsWaitPage, Results]
+```
+
+**¿Por qué?** Las páginas definen QUÉ ve el participante y CUÁNDO. El `page_sequence` es el flujo temporal.
+
+---
+
+## 2.3.2 Anatomía de un Archivo oTree: __init__.py
+
+Piensa en `__init__.py` como el "cerebro" de tu app. Tiene esta estructura:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  1. IMPORTS                                              │
+│     from otree.api import *                              │
+│     → Trae las herramientas necesarias                   │
+├─────────────────────────────────────────────────────────┤
+│  2. CONSTANTS (class C)                                  │
+│     → Parámetros fijos del experimento                   │
+│     → Nombre de la app, número de jugadores, dotaciones  │
+├─────────────────────────────────────────────────────────┤
+│  3. MODELS (clases Subsession, Group, Player)            │
+│     → Dónde guardas DATOS                                │
+│     → Player: individual / Group: compartido             │
+├─────────────────────────────────────────────────────────┤
+│  4. FUNCTIONS                                            │
+│     → Lógica de cálculos y procesamiento                 │
+│     → Ejemplo: calcular payoffs                          │
+├─────────────────────────────────────────────────────────┤
+│  5. PAGES                                                │
+│     → Qué ve y hace el participante                      │
+│     → Cada página = una pantalla                         │
+├─────────────────────────────────────────────────────────┤
+│  6. PAGE_SEQUENCE                                        │
+│     → Orden de las páginas                               │
+│     → El "flujo" del experimento                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Regla de oro:** Si no sabes dónde poner algo, pregúntate:
+- ¿Es un dato? → Models (Player/Group)
+- ¿Es un cálculo? → Functions
+- ¿Es algo que ve el participante? → Pages
+
+---
+
+## 2.3.3 Entendiendo HTML, CSS y JavaScript en oTree
+
+### 📄 HTML: La Estructura
+
+**¿Cuándo usarlo?**
+- Cuando necesitas mostrar información al participante
+- Cuando necesitas un formulario para recoger datos
+
+**Tipos de HTML en oTree:**
+
+#### **Tipo 1: HTML Simple con Django Templating**
+
+Ejemplo: Página de instrucciones
+```html
+{{ block content }}
+<h3>Instrucciones</h3>
+<p>Tienes {{ C.ENDOWMENT }} puntos.</p>
+<p>El multiplicador es {{ C.MULTIPLIER }}.</p>
+{{ next_button }}
+{{ endblock }}
+```
+
+**¿Qué hace?** Muestra texto con variables de Python insertadas (`{{ variable }}`).
+
+**¿Cuándo basta con esto?** Cuando solo necesitas MOSTRAR información, sin interactividad compleja.
+
+---
+
+#### **Tipo 2: Formularios Automáticos**
+
+Ejemplo: Página de decisión
+```html
+{{ block content }}
+<p>¿Cuánto quieres contribuir?</p>
+{{ formfields }}
+{{ next_button }}
+{{ endblock }}
+```
+
+**¿Qué hace?** `{{ formfields }}` genera automáticamente el input basándose en el modelo.
+
+**En Python (__init__.py):**
+```python
+class Contribute(Page):
+    form_model = 'player'
+    form_fields = ['contribution']  # oTree genera el input solo
+```
+
+**¿Cuándo basta con esto?** Cuando el formulario es simple y no necesitas validación visual en tiempo real.
+
+---
+
+#### **Tipo 3: HTML Personalizado**
+
+Ejemplo: Mostrar tabla de contribuciones
+```html
+{{ block content }}
+<table>
+    <tr><th>Jugador</th><th>Contribución</th></tr>
+    {{ for player in players_data }}
+    <tr>
+        <td>Jugador {{ player.id }}</td>
+        <td>{{ player.contribution }}</td>
+    </tr>
+    {{ endfor }}
+</table>
+{{ endblock }}
+```
+
+**¿Qué hace?** Crea estructura compleja (tabla) con datos dinámicos.
+
+**¿Cuándo usarlo?** Cuando `{{ formfields }}` no es suficiente y necesitas control fino del diseño.
+
+---
+
+### 🎨 CSS: El Estilo
+
+**¿Cuándo usarlo?**
+- Cuando el diseño por defecto de oTree se ve feo
+- Cuando necesitas resaltar información importante
+- Cuando quieres que algo se vea profesional
+
+**Dónde poner CSS en oTree:**
+
+```html
+{{ block styles }}
+<style>
+    .highlight {
+        background-color: yellow;
+        font-weight: bold;
+    }
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    td, th {
+        border: 1px solid black;
+        padding: 8px;
+    }
+</style>
+{{ endblock }}
+```
+
+**Regla práctica:** Si tu HTML funciona pero se ve mal, agrega CSS. Si ni siquiera muestra lo que quieres, el problema está en el HTML, no en CSS.
+
+---
+
+### ⚡ JavaScript: La Interactividad
+
+**¿Cuándo usarlo?**
+- Cuando necesitas actualizar algo SIN recargar la página
+- Cuando quieres validación en tiempo real
+- Cuando necesitas gráficos o animaciones
+
+**Ejemplo 1: Validación en Tiempo Real**
+
+HTML:
+```html
+<input type="number" id="contribution" name="contribution" max="100">
+<p id="warning" style="color: red; display: none;">
+    No puedes contribuir más de 100 puntos
+</p>
+```
+
+JavaScript:
+```javascript
+{{ block scripts }}
+<script>
+    const input = document.getElementById('contribution');
+    const warning = document.getElementById('warning');
+    
+    input.addEventListener('input', function() {
+        if (parseInt(input.value) > 100) {
+            warning.style.display = 'block';
+        } else {
+            warning.style.display = 'none';
+        }
+    });
+</script>
+{{ endblock }}
+```
+
+**¿Qué hace?** Muestra advertencia instantánea si el usuario escribe más de 100.
+
+---
+
+**Ejemplo 2: Gráfico con Chart.js**
+
+```html
+{{ block scripts }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const contributions = {{ contributions|json }};  // ← Pasar datos de Python
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Jugador 1', 'Jugador 2', 'Jugador 3'],
+            datasets: [{
+                data: contributions,
+                backgroundColor: ['blue', 'green', 'red']
+            }]
+        }
+    });
+</script>
+{{ endblock }}
+```
+
+**¿Qué hace?** Crea un gráfico de barras con las contribuciones.
+
+**Nota importante:** `{{ variable|json }}` convierte datos de Python a formato JavaScript.
+
+---
+
+### 🔍 Cuadro Resumen: ¿HTML, CSS o JavaScript?
+
+| Necesitas... | Herramienta | Ejemplo |
+|-------------|-------------|---------|
+| Mostrar texto con variables | HTML + Django | `<p>Tienes {{ C.ENDOWMENT }} puntos</p>` |
+| Formulario simple | HTML + `{{ formfields }}` | Página de contribución básica |
+| Tabla personalizada | HTML custom | Mostrar contribuciones de todos |
+| Hacer algo bonito | CSS | Destacar al ganador en verde |
+| Actualizar sin recargar | JavaScript | Calculadora de payoff en vivo |
+| Gráficos | JavaScript + Chart.js | Gráfico de barras de contribuciones |
+| Validación en vivo | JavaScript | Advertir si contribuye demasiado |
+
+---
+
+## 2.3.4 Arsenal para Cuando el LLM se Pierde
+
+### 🛠️ Toolkit Mental para Debugging
+
+Cuando el LLM (o tú) está atascado, usa este framework:
+
+#### **1. ¿El problema es de DATOS o de VISTA?**
+
+**Si el error dice:** `KeyError`, `AttributeError`, `NameError`
+→ **Problema de DATOS** (Python, __init__.py)
+
+**Si el error dice:** `Template not found`, o "no se muestra nada"
+→ **Problema de VISTA** (HTML)
+
+**Si se ve pero feo:**
+→ **Problema de ESTILO** (CSS)
+
+---
+
+#### **2. Checklist de Debugging por Componente**
+
+**Si modificaste Player/Group fields:**
+```bash
+# Primero, SIEMPRE resetear la base de datos cuando cambias models
+otree resetdb
+```
+
+**Si modificaste Pages:**
+- [ ] ¿Está la página en `page_sequence`?
+- [ ] ¿Tiene el método `form_model` si usa formulario?
+- [ ] ¿Los `form_fields` coinciden con campos en Player/Group?
+
+**Si modificaste Templates:**
+- [ ] ¿El archivo está en la ruta correcta? (`app_name/templates/app_name/PageName.html`)
+- [ ] ¿Usas `{{ }}` para variables de Python?
+- [ ] ¿Usas `{% %}` para lógica (if, for)?
+
+**Si modificaste Functions:**
+- [ ] ¿La función recibe los parámetros correctos? (player, group, subsession)
+- [ ] ¿Guardas los resultados en un campo de model?
+
+---
+
+#### **3. Comandos de Diagnóstico**
+
+```bash
+# Ver errores detallados
+otree devserver
+
+# Resetear base de datos (después de cambiar models)
+otree resetdb
+
+# Ver qué campos tiene un model
+# En el código Python, agrega:
+print(player._meta.get_fields())
+```
+
+---
+
+### 📚 Mapa Mental: ¿Dónde Buscar Cuando Falla?
+
+```
+¿Algo no funciona?
+│
+├─ ¿No guarda datos?
+│  └─ Revisa: Player/Group fields + form_fields en Page
+│
+├─ ¿No se ve la página?
+│  └─ Revisa: page_sequence + nombre del template
+│
+├─ ¿Error de cálculo?
+│  └─ Revisa: Functions (set_payoffs, etc.)
+│
+├─ ¿No pasa a la siguiente página?
+│  └─ Revisa: WaitPage + after_all_players_arrive
+│
+└─ ¿Variables no aparecen en HTML?
+   └─ Revisa: vars_for_template en la Page
+```
+
+---
+
+## 2.3.5 Ejemplo Completo: Del Modelo al Código
+
+### Caso: Agregar una Pregunta de Comprensión
+
+**MODELO:** "Antes de jugar, el participante debe responder: '¿Cuántos puntos tienes al inicio?' Respuesta correcta: 100."
+
+---
+
+**PASO 1: Identificar qué necesitas**
+- [ ] Dato: respuesta del participante → `Player` field
+- [ ] Vista: página con pregunta → `Page` + template HTML
+- [ ] Lógica: validar respuesta → `error_message` en Page
+- [ ] Flujo: va antes de Contribute → agregar a `page_sequence`
+
+---
+
+**PASO 2: Código Python (__init__.py)**
+
+```python
+# En Player class
+class Player(BasePlayer):
+    contribution = models.CurrencyField(...)
+    # ↓ NUEVO
+    comprehension_q1 = models.IntegerField(
+        label="¿Cuántos puntos tienes al inicio?"
+    )
+
+# Nueva Page
+class Comprehension(Page):
+    form_model = 'player'
+    form_fields = ['comprehension_q1']
+    
+    @staticmethod
+    def error_message(player, values):
+        if values['comprehension_q1'] != 100:
+            return "Incorrecto. Revisa las instrucciones."
+
+# Actualizar secuencia
+page_sequence = [Comprehension, Contribute, ResultsWaitPage, Results]
+```
+
+---
+
+**PASO 3: Template HTML (Comprehension.html)**
+
+```html
+{{ block title }}
+    Pregunta de Comprensión
+{{ endblock }}
+
+{{ block content }}
+<p>Antes de comenzar, responde:</p>
+{{ formfields }}
+{{ next_button }}
+{{ endblock }}
+```
+
+---
+
+**PASO 4: Verificar**
+```bash
+otree resetdb  # ¡Importante! Cambiaste Player model
+otree devserver
+# Probar: responder mal → debe mostrar error
+# Probar: responder 100 → debe continuar
+```
+
+---
+
+## 2.3.6 Consejo Final: Aprende Haciendo las Tareas de Otros
+
+Si esta sección te abrumó, no te preocupes. La mejor manera de aprender es:
+
+1. **Implementa tu issue asignado** con ayuda del LLM
+2. **Lee el código de los otros módulos** (Mauricio, José Miguel, Sergio, Donovan)
+3. **Identifica patrones:** "Ah, cuando agrego un campo, también necesito..."
+
+Los 4 módulos del taller cubren las tareas más frecuentes en oTree:
+- Mauricio: Pages + validación
+- José Miguel: Configuración + parámetros
+- Sergio: Visualización (HTML/CSS/JS)
+- Donovan: Interacciones entre jugadores
+
+**Si entiendes estos 4, entiendes el 80% de lo que harás en oTree.**
+
+---
+
 # PARTE 3: MÓDULOS DE TRABAJO
 
 Cada participante trabajará en su issue asignado. A continuación se detallan las instrucciones, hints, y soluciones para cada uno.
