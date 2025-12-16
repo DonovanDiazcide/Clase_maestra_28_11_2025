@@ -277,65 +277,127 @@ Donde:
 - Mi parte del fondo = (Total contribuido × 2) ÷ 3
 ```
 
-### El dilema
+### ¿Por qué es un dilema?
 
-Aquí está lo interesante:
-- **Si todos cooperan:** El grupo entero gana más
-- **Si solo tú no cooperas:** Tú ganas más que los demás (pero el grupo pierde en total)
-- **Si nadie coopera:** Todos ganan menos que si hubieran cooperado
-
-### Ejemplo numérico: Todos cooperan igual
-
-| Jugador | Dotación | Contribuye | Se queda | Recibe del fondo | **Total** |
-|---------|----------|------------|----------|------------------|-----------|
-| Ana     | 100      | 50         | 50       | 100              | **150**   |
-| Bob     | 100      | 50         | 50       | 100              | **150**   |
-| Carlos  | 100      | 50         | 50       | 100              | **150**   |
-
-**Cálculo:**
-- Total contribuido: 50 + 50 + 50 = 150
-- Fondo multiplicado: 150 × 2 = 300
-- Parte de cada uno: 300 ÷ 3 = 100
-
-### Ejemplo numérico: Carlos no coopera
-
-| Jugador | Dotación | Contribuye | Se queda | Recibe del fondo | **Total** |
-|---------|----------|------------|----------|------------------|-----------|
-| Ana     | 100      | 50         | 50       | 66.67            | **116.67**|
-| Bob     | 100      | 50         | 50       | 66.67            | **116.67**|
-| Carlos  | 100      | 0          | 100      | 66.67            | **166.67**|
-
-**Cálculo:**
-- Total contribuido: 50 + 50 + 0 = 100
-- Fondo multiplicado: 100 × 2 = 200
-- Parte de cada uno: 200 ÷ 3 = 66.67
-
-Carlos gana más que los demás, pero el grupo en total tiene menos dinero (450 vs 400).
+Veamos qué pasa con diferentes niveles de cooperación para entender el dilema:
 
 ---
 
-## 3.2 La modificación del artículo: El sistema de castigo
+**ESCENARIO 1: Todos cooperan al máximo (contribuyen todo)**
 
-El paper de **Fehr & Gächter (2000)** estudia cómo el **castigo** afecta la cooperación.
+| Jugador | Contribuye | Se queda | Recibe del fondo | **Ganancia** |
+|---------|------------|----------|------------------|--------------|
+| Ana     | 100        | 0        | 200              | **200**      |
+| Bob     | 100        | 0        | 200              | **200**      |
+| Carlos  | 100        | 0        | 200              | **200**      |
 
-### ¿Qué agrega el artículo?
+*Cálculo: Total = 300 → Multiplicado = 600 → Cada uno recibe 600÷3 = 200*
 
-Después de ver las contribuciones de todos, cada jugador puede **castigar** a otros jugadores. El castigo funciona así:
+**Resultado:** Todos duplican su dinero inicial. El grupo en total tiene **600 puntos**.
 
-- **Costo:** Cada punto de castigo que envías **te cuesta 1 punto**
-- **Efecto:** Cada punto de castigo **reduce 3 puntos** al jugador castigado
+---
+
+**ESCENARIO 2: Nadie coopera (todos contribuyen 0)**
+
+| Jugador | Contribuye | Se queda | Recibe del fondo | **Ganancia** |
+|---------|------------|----------|------------------|--------------|
+| Ana     | 0          | 100      | 0                | **100**      |
+| Bob     | 0          | 100      | 0                | **100**      |
+| Carlos  | 0          | 100      | 0                | **100**      |
+
+*Cálculo: Total = 0 → Multiplicado = 0 → Cada uno recibe 0*
+
+**Resultado:** Nadie gana nada extra. El grupo en total tiene **300 puntos** (lo mismo que empezaron).
+
+---
+
+**ESCENARIO 3: Ana y Bob cooperan, Carlos NO coopera**
+
+| Jugador | Contribuye | Se queda | Recibe del fondo | **Ganancia** |
+|---------|------------|----------|------------------|--------------|
+| Ana     | 100        | 0        | 133.33           | **133.33**   |
+| Bob     | 100        | 0        | 133.33           | **133.33**   |
+| Carlos  | 0          | 100      | 133.33           | **233.33**   |
+
+*Cálculo: Total = 200 → Multiplicado = 400 → Cada uno recibe 400÷3 = 133.33*
+
+**Resultado:** Carlos gana **más que todos**, incluso más que si todos hubieran cooperado (233 > 200). Ana y Bob ganan menos que si todos hubieran cooperado (133 < 200).
+
+---
+
+### El dilema explicado
+
+Aquí está el problema:
+
+1. **Lo mejor para el grupo** es que todos cooperen al máximo → todos ganan 200
+2. **Pero** si los demás cooperan y tú no, **tú ganas más que ellos** (233 vs 133)
+3. **El problema** es que si todos piensan así, nadie coopera y todos terminan con solo 100
+
+Esto se llama **dilema social**: lo que es racionalmente óptimo para cada individuo (no cooperar) lleva a un resultado peor para todos.
+
+### ¿Por qué alguien cooperaría?
+
+En teoría económica clásica, la predicción es que nadie debería cooperar. Pero en experimentos reales, las personas sí cooperan, aunque típicamente:
+- La cooperación empieza alta (40-60% de la dotación)
+- Va disminuyendo conforme avanzan las rondas
+- Termina cerca de cero en las últimas rondas
+
+Esto es lo que motivó a Fehr & Gächter a estudiar si el **castigo** puede mantener la cooperación alta.
+
+---
+
+## 3.2 La modificación de Fehr & Gächter: El sistema de castigo
+
+El paper **"Cooperation and Punishment in Public Goods Experiments" (2000)** introduce una etapa adicional después de ver las contribuciones.
+
+### ¿Cómo funciona el castigo?
+
+Después de que todos ven cuánto contribuyó cada quien, hay una **segunda etapa** donde cada jugador puede gastar puntos para **reducir** los puntos de otros jugadores.
+
+**Parámetros del castigo:**
+- **Costo para el castigador:** 1 punto por cada punto de castigo que envía
+- **Efecto en el castigado:** Pierde 3 puntos por cada punto de castigo que recibe
+- **Máximo:** 10 puntos de castigo por jugador
 - **Anonimato:** Nadie sabe quién lo castigó
 
-### ¿Por qué esto es interesante?
+### Ejemplo de castigo
 
-- **Sin castigo:** El equilibrio teórico es que nadie contribuye (todos son "free-riders")
-- **Con castigo:** Los cooperadores pueden "castigar" a los free-riders
-- **Resultado empírico:** La cooperación aumenta significativamente cuando hay posibilidad de castigo
+Volvamos al Escenario 3 donde Carlos no cooperó:
+- Ana ganó 133.33 puntos
+- Bob ganó 133.33 puntos  
+- Carlos ganó 233.33 puntos
+
+Ahora, Ana y Bob están molestos con Carlos. Deciden castigarlo:
+- Ana envía 5 puntos de castigo a Carlos
+- Bob envía 5 puntos de castigo a Carlos
+
+**Resultado después del castigo:**
+
+| Jugador | Ganancia inicial | Costo de castigar | Castigo recibido | **Ganancia final** |
+|---------|------------------|-------------------|------------------|-------------------|
+| Ana     | 133.33           | -5 (envió 5)      | 0                | **128.33**        |
+| Bob     | 133.33           | -5 (envió 5)      | 0                | **128.33**        |
+| Carlos  | 233.33           | 0                 | -30 (10×3)       | **203.33**        |
+
+Carlos sigue ganando más, pero ahora la diferencia es menor. Y lo más importante: **Carlos aprendió que no cooperar tiene consecuencias**.
+
+### ¿Por qué funciona el castigo?
+
+El hallazgo principal de Fehr & Gächter es que:
+
+1. **Con castigo disponible:** La cooperación se mantiene alta a lo largo de todas las rondas
+2. **Sin castigo:** La cooperación decae hasta casi cero
+3. **Las personas están dispuestas a pagar** para castigar a los que no cooperan, aunque les cueste
+
+Esto sugiere que las personas tienen preferencias por la "justicia" o "reciprocidad", no solo por maximizar sus ganancias.
 
 ### El nuevo flujo del juego
 
 ```
-Contribución → Ver resultados intermedios → Castigo → Ver resultados finales
+┌──────────────┐     ┌─────────────────────┐     ┌──────────┐     ┌─────────────────┐
+│ Contribución │ ──▶ │ Resultados iniciales│ ──▶ │ Castigo  │ ──▶ │ Resultados      │
+│              │     │ (ven contribuciones)│     │          │     │ finales         │
+└──────────────┘     └─────────────────────┘     └──────────┘     └─────────────────┘
 ```
 
 ---
