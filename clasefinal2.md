@@ -558,7 +558,46 @@ Cada tarea tiene tres secciones:
 > ⚠️ **Esta tarea es para demostración del instructor. NO la hacen Alessandra, Valentina, Rodrigo ni Mauricio.**
 
 ### Objetivo de la tarea mediana
-Modificar el juego para que tenga 4 rondas en lugar de 1, y mostrar el historial de rondas anteriores en la página de resultados.
+Modificar el juego para que tenga 4 rondas en lugar de 1, y mostrar el historial de rondas anteriores en la página de resultados. Esto permitirá que los participantes vean cómo evolucionan las contribuciones a lo largo del tiempo.
+
+### Configuración inicial del proyecto
+
+#### Paso 1: Clonar el repositorio
+
+Abre **Terminal** (Mac) o **Git Bash** (Windows) y ejecuta:
+
+```bash
+# Navegar a la carpeta donde quieres guardar el proyecto
+cd ~/Documentos
+
+# Clonar el repositorio (reemplaza URL_DEL_REPOSITORIO con la URL real)
+git clone URL_DEL_REPOSITORIO public_goods_project
+
+# Entrar a la carpeta del proyecto
+cd public_goods_project
+```
+
+#### Paso 2: Instalar las dependencias
+
+```bash
+# Crear un entorno virtual (opcional pero recomendado)
+python -m venv venv
+
+# Activar el entorno virtual
+# En Mac/Linux:
+source venv/bin/activate
+# En Windows (Git Bash):
+source venv/Scripts/activate
+
+# Instalar las dependencias
+pip install -r requirements.txt
+```
+
+#### Paso 3: Abrir el proyecto en Visual Studio Code
+
+```bash
+code .
+```
 
 ### Flujo Git inicial
 
@@ -572,11 +611,580 @@ git checkout -b feature/multiples-rondas
 
 | # | Tarea pequeña | Archivos involucrados |
 |---|--------------|----------------------|
-| 1 | Cambiar NUM_ROUNDS de 1 a 4 | `__init__.py` |
-| 2 | Agregar función para obtener historial de rondas anteriores | `__init__.py` |
-| 3 | Modificar vars_for_template en Results para incluir historial | `__init__.py` |
-| 4 | Actualizar Results.html para mostrar tabla de historial | `templates/public_goods/Results.html` |
-| 5 | Agregar indicador visual de ronda actual | `templates/public_goods/Contribute.html` |
+| 1 | Cambiar NUM_ROUNDS de 1 a 4 en la clase C | `__init__.py` |
+| 2 | Crear función `get_round_history` para obtener datos de rondas anteriores | `__init__.py` |
+| 3 | Agregar `vars_for_template` en Results para incluir el historial | `__init__.py` |
+| 4 | Actualizar Results.html para mostrar tabla de historial de rondas | `templates/public_goods/Results.html` |
+| 5 | Agregar indicador visual de ronda actual en Contribute.html | `templates/public_goods/Contribute.html` |
+
+---
+
+### 📋 Prompt para Claude
+
+Copia y pega el siguiente prompt en Claude:
+
+```
+Estas son las tareas pequeñas que me asignaron y que debo de completar. Por favor quiero que crees un plan para ejecutar exactamente una tarea a la vez.
+
+1. Cambiar NUM_ROUNDS de 1 a 4 en la clase C
+2. Crear función get_round_history para obtener datos de rondas anteriores
+3. Agregar vars_for_template en Results para incluir el historial
+4. Actualizar Results.html para mostrar tabla de historial de rondas
+5. Agregar indicador visual de ronda actual en Contribute.html
+
+Decide si quieres dedicar solamente un prompt para completar cada tarea, o si un prompt por tarea es suficiente. Dedica un prompt entero inicial para saber exactamente cuántos prompts necesitarás para completar cada tarea pequeña, puede ser uno o varios, no hay límite de cuántos prompts puedas necesitar para cada tarea pequeña. Por favor, un solo prompt a la vez, nunca intentes ejecutar más de un prompt en una ejecución.
+
+Este es un archivo zip con los archivos del proyecto. Actualmente estoy trabajando en modificaciones del proyecto public_goods. Si tienes que modificar otros archivos fuera de la carpeta, entonces hazlo. Después de cada prompt crea prompt1.md (o prompt2.md, etc.) explicando claramente las diferencias de código que creaste con el código existente.
+
+Después de aplicar los cambios que me sugeriste para cada prompt, quiero que me indiques un mensaje de commit claro para identificar los cambios que hayas hecho, y dame las líneas de código que debo de ejecutar en la Terminal, para "tomarle una foto al proyecto" y poder agregarla al historial.
+
+En todos los cambios que hagas quiero que coloques comentarios didácticos que me permitan identificar claramente lo que estás haciendo en términos de código. Tal vez quieras hacer un prompt, y en su defecto, un commit para poner estos comentarios, ya que si modificaste muchas líneas de código, entonces habrá un número muy similar de comentarios, y no quiero que restes potencia de programación y razonamiento a cada prompt que ya haces por querer incluir los comentarios de una vez.
+
+Finalmente, quiero que para generar archivos de python, html, css y javascript, revises la documentación oficial de otree. (la adjunto en este mensaje.)
+```
+
+---
+
+### 💡 HINTS
+
+<details>
+<summary>Hint para Tarea 1 (cambiar NUM_ROUNDS)</summary>
+
+Simplemente modifica la constante en la clase `C`:
+
+```python
+class C(BaseConstants):
+    NAME_IN_URL = 'public_goods'
+    PLAYERS_PER_GROUP = 3
+    NUM_ROUNDS = 4  # Cambiado de 1 a 4
+    ENDOWMENT = cu(100)
+    MULTIPLIER = 2
+```
+
+</details>
+
+<details>
+<summary>Hint para Tarea 2 (función get_round_history)</summary>
+
+Para obtener datos de rondas anteriores, puedes usar `player.in_previous_rounds()`:
+
+```python
+def get_round_history(player):
+    """Obtiene el historial de rondas anteriores del jugador"""
+    history = []
+    for p in player.in_previous_rounds():
+        history.append({
+            'round_number': p.round_number,
+            'contribution': p.contribution,
+            'payoff': p.payoff,
+        })
+    return history
+```
+
+</details>
+
+<details>
+<summary>Hint para Tarea 3 (vars_for_template con historial)</summary>
+
+Agrega el historial en `vars_for_template`:
+
+```python
+class Results(Page):
+    @staticmethod
+    def vars_for_template(player):
+        history = get_round_history(player)
+        return dict(
+            round_history=history,
+            current_round=player.round_number,
+            total_rounds=C.NUM_ROUNDS,
+        )
+```
+
+</details>
+
+<details>
+<summary>Hint para Tareas 4-5 (mostrar ronda actual)</summary>
+
+En los templates puedes acceder a `player.round_number` y `C.NUM_ROUNDS`:
+
+```html
+<p>Ronda {{ player.round_number }} de {{ C.NUM_ROUNDS }}</p>
+```
+
+Para mostrar el historial en una tabla:
+```html
+{{ for round in round_history }}
+<tr>
+    <td>{{ round.round_number }}</td>
+    <td>{{ round.contribution }}</td>
+    <td>{{ round.payoff }}</td>
+</tr>
+{{ endfor }}
+```
+
+</details>
+
+---
+
+### ✅ SOLUCIÓN COMPLETA
+
+<details>
+<summary>Click para ver la solución completa</summary>
+
+#### TAREA PEQUEÑA 1: Cambiar NUM_ROUNDS
+
+En `__init__.py`, modificar la clase `C`:
+
+```python
+class C(BaseConstants):
+    """
+    CONSTANTES: Parámetros que NO cambian durante el experimento
+    """
+    NAME_IN_URL = 'public_goods'
+    PLAYERS_PER_GROUP = 3
+    # MODIFICADO: Ahora el juego tiene 4 rondas para observar la evolución de la cooperación
+    NUM_ROUNDS = 4             # Cambiado de 1 a 4 rondas
+    ENDOWMENT = cu(100)
+    MULTIPLIER = 2
+```
+
+**📍 COMMIT #1 (en Terminal):**
+```bash
+git add public_goods/__init__.py
+git commit -m "tarea 1: cambia NUM_ROUNDS de 1 a 4"
+```
+
+---
+
+#### TAREA PEQUEÑA 2: Crear función get_round_history
+
+En `__init__.py`, agregar esta función (después de `set_payoffs`):
+
+```python
+def get_round_history(player):
+    """
+    Obtiene el historial de todas las rondas anteriores del jugador.
+    
+    Esta función permite mostrar cómo han evolucionado las contribuciones
+    y ganancias a lo largo del juego.
+    
+    Args:
+        player: El jugador actual
+        
+    Returns:
+        Lista de diccionarios con los datos de cada ronda anterior
+    """
+    history = []
+    
+    # Obtener todas las versiones anteriores del jugador
+    for past_player in player.in_previous_rounds():
+        # Solo agregar si la ronda ya tiene datos (contribución no es None)
+        if past_player.contribution is not None:
+            past_group = past_player.group
+            history.append({
+                'round_number': past_player.round_number,
+                'my_contribution': float(past_player.contribution),
+                'group_total': float(past_group.total_contribution),
+                'my_payoff': float(past_player.payoff),
+            })
+    
+    return history
+```
+
+**📍 COMMIT #2 (en Terminal):**
+```bash
+git add public_goods/__init__.py
+git commit -m "tarea 2: crea función get_round_history para historial de rondas"
+```
+
+---
+
+#### TAREA PEQUEÑA 3: Agregar vars_for_template en Results
+
+Modificar la clase `Results`:
+
+```python
+class Results(Page):
+    """Muestra los resultados finales con historial de rondas"""
+    
+    @staticmethod
+    def vars_for_template(player):
+        """
+        Prepara todas las variables necesarias para mostrar:
+        - Resultados de la ronda actual
+        - Historial de rondas anteriores
+        - Información de progreso
+        """
+        group = player.group
+        
+        # Obtener historial de rondas anteriores
+        round_history = get_round_history(player)
+        
+        # Calcular estadísticas acumuladas
+        total_earnings = float(player.payoff)
+        for past_round in round_history:
+            total_earnings += past_round['my_payoff']
+        
+        # Datos de la ronda actual
+        current_round_data = {
+            'round_number': player.round_number,
+            'my_contribution': float(player.contribution),
+            'group_total': float(group.total_contribution),
+            'my_payoff': float(player.payoff),
+        }
+        
+        return dict(
+            # Datos de la ronda actual
+            current_round=current_round_data,
+            # Historial de rondas anteriores
+            round_history=round_history,
+            # Información de progreso
+            current_round_number=player.round_number,
+            total_rounds=C.NUM_ROUNDS,
+            is_last_round=player.round_number == C.NUM_ROUNDS,
+            # Estadísticas acumuladas
+            total_earnings=total_earnings,
+        )
+```
+
+**📍 COMMIT #3 (en Terminal):**
+```bash
+git add public_goods/__init__.py
+git commit -m "tarea 3: agrega vars_for_template en Results con historial"
+```
+
+---
+
+#### TAREA PEQUEÑA 4: Actualizar Results.html
+
+Reemplazar `public_goods/templates/public_goods/Results.html`:
+
+```html
+{{ block title }}
+    Resultados - Ronda {{ current_round_number }} de {{ total_rounds }}
+{{ endblock }}
+
+{{ block styles }}
+<style>
+    .results-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .round-indicator {
+        text-align: center;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .round-indicator h2 {
+        margin: 0;
+    }
+    
+    .progress-bar {
+        height: 10px;
+        background-color: rgba(255,255,255,0.3);
+        border-radius: 5px;
+        margin-top: 10px;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background-color: white;
+        border-radius: 5px;
+        transition: width 0.3s ease;
+    }
+    
+    .section {
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .section h3 {
+        margin-top: 0;
+        color: #333;
+        border-bottom: 2px solid #4CAF50;
+        padding-bottom: 10px;
+    }
+    
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+    }
+    
+    .history-table th,
+    .history-table td {
+        padding: 12px;
+        text-align: center;
+        border: 1px solid #ddd;
+    }
+    
+    .history-table th {
+        background-color: #667eea;
+        color: white;
+    }
+    
+    .history-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    
+    .history-table tr.current-round {
+        background-color: #E8F5E9;
+        font-weight: bold;
+    }
+    
+    .current-result {
+        background: linear-gradient(135deg, #4CAF50, #8BC34A);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .total-earnings {
+        background: linear-gradient(135deg, #FF9800, #F57C00);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+    }
+</style>
+{{ endblock }}
+
+{{ block content }}
+<div class="results-container">
+    
+    <!-- INDICADOR DE RONDA -->
+    <div class="round-indicator">
+        <h2>Ronda {{ current_round_number }} de {{ total_rounds }}</h2>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ current_round_number|multiply:100|divide:total_rounds }}%;"></div>
+        </div>
+        {{ if is_last_round }}
+        <p style="margin-top: 10px;">🎉 ¡Esta es la última ronda!</p>
+        {{ endif }}
+    </div>
+    
+    <!-- RESULTADO DE LA RONDA ACTUAL -->
+    <div class="current-result">
+        <h3 style="margin-top: 0;">Tu ganancia en esta ronda</h3>
+        <p style="font-size: 2em; margin: 10px 0;">{{ player.payoff }}</p>
+        <p>Contribuiste {{ current_round.my_contribution }} puntos | Total del grupo: {{ current_round.group_total }} puntos</p>
+    </div>
+    
+    <!-- HISTORIAL DE RONDAS -->
+    {{ if round_history }}
+    <div class="section">
+        <h3>📊 Historial de Rondas</h3>
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Ronda</th>
+                    <th>Tu Contribución</th>
+                    <th>Total del Grupo</th>
+                    <th>Tu Ganancia</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rondas anteriores -->
+                {{ for round in round_history }}
+                <tr>
+                    <td>{{ round.round_number }}</td>
+                    <td>{{ round.my_contribution }} pts</td>
+                    <td>{{ round.group_total }} pts</td>
+                    <td>{{ round.my_payoff }} pts</td>
+                </tr>
+                {{ endfor }}
+                <!-- Ronda actual (destacada) -->
+                <tr class="current-round">
+                    <td>{{ current_round.round_number }} (actual)</td>
+                    <td>{{ current_round.my_contribution }} pts</td>
+                    <td>{{ current_round.group_total }} pts</td>
+                    <td>{{ current_round.my_payoff }} pts</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {{ endif }}
+    
+    <!-- GANANCIAS TOTALES (solo en la última ronda) -->
+    {{ if is_last_round }}
+    <div class="total-earnings">
+        <h3 style="margin-top: 0;">🏆 Ganancias Totales del Juego</h3>
+        <p style="font-size: 2.5em; margin: 10px 0;">{{ total_earnings }} puntos</p>
+        <p>Suma de todas las rondas</p>
+    </div>
+    {{ endif }}
+
+</div>
+
+{{ next_button }}
+{{ endblock }}
+```
+
+**📍 COMMIT #4 (en Terminal):**
+```bash
+git add public_goods/templates/public_goods/Results.html
+git commit -m "tarea 4: actualiza Results.html con historial de rondas"
+```
+
+---
+
+#### TAREA PEQUEÑA 5: Agregar indicador de ronda en Contribute.html
+
+Reemplazar `public_goods/templates/public_goods/Contribute.html`:
+
+```html
+{{ block title }}
+    Contribución - Ronda {{ player.round_number }} de {{ C.NUM_ROUNDS }}
+{{ endblock }}
+
+{{ block styles }}
+<style>
+    .round-banner {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+    
+    .round-banner h2 {
+        margin: 0 0 10px 0;
+    }
+    
+    .round-dots {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .round-dot {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: rgba(255,255,255,0.3);
+    }
+    
+    .round-dot.completed {
+        background-color: #4CAF50;
+    }
+    
+    .round-dot.current {
+        background-color: white;
+        box-shadow: 0 0 10px rgba(255,255,255,0.8);
+    }
+    
+    .contribute-form {
+        background-color: #f9f9f9;
+        padding: 25px;
+        border-radius: 8px;
+    }
+    
+    .info-box {
+        background-color: #e3f2fd;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        border-left: 4px solid #2196F3;
+    }
+</style>
+{{ endblock }}
+
+{{ block content }}
+<div style="max-width: 600px; margin: 0 auto;">
+    
+    <!-- BANNER DE RONDA -->
+    <div class="round-banner">
+        <h2>🎮 Ronda {{ player.round_number }} de {{ C.NUM_ROUNDS }}</h2>
+        
+        <!-- Indicadores visuales de progreso -->
+        <div class="round-dots">
+            {{ for i in C.NUM_ROUNDS|make_range }}
+            <div class="round-dot {{ if i < player.round_number }}completed{{ elif i == player.round_number }}current{{ endif }}"></div>
+            {{ endfor }}
+        </div>
+        
+        {{ if player.round_number == 1 }}
+        <p style="margin-top: 15px; margin-bottom: 0;">Primera ronda - ¡Buena suerte!</p>
+        {{ elif player.round_number == C.NUM_ROUNDS }}
+        <p style="margin-top: 15px; margin-bottom: 0;">🏁 ¡Última ronda!</p>
+        {{ else }}
+        <p style="margin-top: 15px; margin-bottom: 0;">Rondas restantes: {{ C.NUM_ROUNDS|subtract:player.round_number }}</p>
+        {{ endif }}
+    </div>
+    
+    <!-- FORMULARIO DE CONTRIBUCIÓN -->
+    <div class="contribute-form">
+        
+        <div class="info-box">
+            <strong>Recuerda:</strong>
+            <ul style="margin-bottom: 0;">
+                <li>Tienes <strong>{{ C.ENDOWMENT }}</strong> puntos para esta ronda</li>
+                <li>El fondo común se multiplica por <strong>{{ C.MULTIPLIER }}</strong></li>
+                <li>El resultado se divide entre <strong>{{ C.PLAYERS_PER_GROUP }}</strong> jugadores</li>
+            </ul>
+        </div>
+        
+        <p style="font-size: 1.1em;">
+            ¿Cuántos puntos quieres contribuir al fondo común en esta ronda?
+        </p>
+        
+        {{ formfields }}
+        
+        {{ next_button }}
+    </div>
+
+</div>
+{{ endblock }}
+```
+
+**📍 COMMIT #5 (en Terminal):**
+```bash
+git add public_goods/templates/public_goods/Contribute.html
+git commit -m "tarea 5: agrega indicador visual de ronda actual en Contribute"
+```
+
+---
+
+#### Subir y crear Pull Request
+
+En **Terminal**:
+```bash
+git push -u origin feature/multiples-rondas
+```
+
+Descripción del Pull Request:
+
+```
+## Tarea Mediana: Múltiples Rondas con Historial
+
+### Tareas pequeñas completadas:
+1. ✅ Cambié NUM_ROUNDS de 1 a 4
+2. ✅ Creé función get_round_history para obtener datos de rondas anteriores
+3. ✅ Agregué vars_for_template en Results con historial y estadísticas
+4. ✅ Actualicé Results.html con tabla de historial de rondas
+5. ✅ Agregué indicador visual de ronda actual en Contribute.html
+
+### Funcionalidades agregadas:
+- El juego ahora tiene 4 rondas
+- Los jugadores ven un indicador de progreso (ronda X de Y)
+- En resultados se muestra el historial de todas las rondas
+- En la última ronda se muestran las ganancias totales acumuladas
+
+### Código de verificación: [código que les dio José Miguel]
+```
+
+</details>
 
 ---
 
@@ -587,9 +1195,49 @@ git checkout -b feature/multiples-rondas
 ### Objetivo de la tarea mediana
 Crear una página de instrucciones clara que explique el juego, y una página de preguntas de comprensión que valide que el participante entendió las reglas antes de jugar.
 
+### Configuración inicial del proyecto
+
+#### Paso 1: Clonar el repositorio
+
+Abre **Git Bash** (búscalo en el menú Inicio como "Git Bash") y ejecuta:
+
+```bash
+# Navegar a la carpeta Documentos
+cd ~/Documents
+# Si tu computadora está en español, puede ser:
+# cd ~/Documentos
+
+# Clonar el repositorio (reemplaza URL_DEL_REPOSITORIO con la URL real)
+git clone URL_DEL_REPOSITORIO public_goods_project
+
+# Entrar a la carpeta del proyecto
+cd public_goods_project
+```
+
+#### Paso 2: Instalar las dependencias
+
+```bash
+# Crear un entorno virtual
+python -m venv venv
+
+# Activar el entorno virtual (en Git Bash de Windows)
+source venv/Scripts/activate
+
+# Instalar las dependencias del proyecto
+pip install -r requirements.txt
+```
+
+#### Paso 3: Abrir el proyecto en Visual Studio Code
+
+```bash
+code .
+```
+
+> 💡 Si el comando `code .` no funciona, abre Visual Studio Code manualmente y usa "Archivo > Abrir carpeta" para abrir la carpeta del proyecto.
+
 ### Flujo Git inicial
 
-Abre **Git Bash** y ejecuta:
+En **Git Bash**, ejecuta:
 
 ```bash
 git checkout main
@@ -980,9 +1628,50 @@ Luego ir a GitHub y crear el Pull Request con esta descripción:
 ### Objetivo de la tarea mediana
 Hacer que los parámetros del juego (dotación, multiplicador, jugadores por grupo) sean configurables desde `settings.py`, y crear dos tratamientos experimentales con diferentes valores.
 
+### Configuración inicial del proyecto
+
+#### Paso 1: Clonar el repositorio
+
+Abre **Terminal** (búscalo en Spotlight con ⌘+Espacio y escribe "Terminal") y ejecuta:
+
+```bash
+# Navegar a la carpeta Documentos
+# Si tu Mac está en español:
+cd ~/Documentos
+# Si tu Mac está en inglés:
+# cd ~/Documents
+
+# Clonar el repositorio (reemplaza URL_DEL_REPOSITORIO con la URL real)
+git clone URL_DEL_REPOSITORIO public_goods_project
+
+# Entrar a la carpeta del proyecto
+cd public_goods_project
+```
+
+#### Paso 2: Instalar las dependencias
+
+```bash
+# Crear un entorno virtual
+python3 -m venv venv
+
+# Activar el entorno virtual (en Mac)
+source venv/bin/activate
+
+# Instalar las dependencias del proyecto
+pip install -r requirements.txt
+```
+
+#### Paso 3: Abrir el proyecto en Visual Studio Code
+
+```bash
+code .
+```
+
+> 💡 Si el comando `code .` no funciona, abre Visual Studio Code manualmente y usa "File > Open Folder" (o "Archivo > Abrir carpeta" en español) para abrir la carpeta del proyecto.
+
 ### Flujo Git inicial
 
-Abre **Terminal** y ejecuta:
+En **Terminal**, ejecuta:
 
 ```bash
 git checkout main
@@ -1341,9 +2030,50 @@ Descripción del Pull Request:
 ### Objetivo de la tarea mediana
 Mejorar la página de resultados para que muestre una tabla con las contribuciones de todos los jugadores, un gráfico de barras, y un desglose paso a paso del cálculo de payoff.
 
+### Configuración inicial del proyecto
+
+#### Paso 1: Clonar el repositorio
+
+Abre **Terminal** (búscalo en Spotlight con ⌘+Espacio y escribe "Terminal") y ejecuta:
+
+```bash
+# Navegar a la carpeta Documentos
+# Si tu Mac está en español:
+cd ~/Documentos
+# Si tu Mac está en inglés:
+# cd ~/Documents
+
+# Clonar el repositorio (reemplaza URL_DEL_REPOSITORIO con la URL real)
+git clone URL_DEL_REPOSITORIO public_goods_project
+
+# Entrar a la carpeta del proyecto
+cd public_goods_project
+```
+
+#### Paso 2: Instalar las dependencias
+
+```bash
+# Crear un entorno virtual
+python3 -m venv venv
+
+# Activar el entorno virtual (en Mac)
+source venv/bin/activate
+
+# Instalar las dependencias del proyecto
+pip install -r requirements.txt
+```
+
+#### Paso 3: Abrir el proyecto en Visual Studio Code
+
+```bash
+code .
+```
+
+> 💡 Si el comando `code .` no funciona, abre Visual Studio Code manualmente y usa "File > Open Folder" (o "Archivo > Abrir carpeta" en español) para abrir la carpeta del proyecto.
+
 ### Flujo Git inicial
 
-Abre **Terminal** y ejecuta:
+En **Terminal**, ejecuta:
 
 ```bash
 git checkout main
@@ -1822,9 +2552,47 @@ Descripción del Pull Request:
 ### Objetivo de la tarea mediana
 Implementar la etapa de castigo donde los participantes pueden gastar puntos para reducir el payoff de otros jugadores, siguiendo el diseño de Fehr & Gächter (2000).
 
+### Configuración inicial del proyecto
+
+#### Paso 1: Clonar el repositorio
+
+Abre **Git Bash** (search for "Git Bash" in the Start menu) y ejecuta:
+
+```bash
+# Navigate to the Documents folder
+cd ~/Documents
+
+# Clone the repository (replace URL_DEL_REPOSITORIO with the actual URL)
+git clone URL_DEL_REPOSITORIO public_goods_project
+
+# Enter the project folder
+cd public_goods_project
+```
+
+#### Paso 2: Instalar las dependencias
+
+```bash
+# Create a virtual environment
+python -m venv venv
+
+# Activate the virtual environment (in Git Bash on Windows)
+source venv/Scripts/activate
+
+# Install the project dependencies
+pip install -r requirements.txt
+```
+
+#### Paso 3: Abrir el proyecto en Visual Studio Code
+
+```bash
+code .
+```
+
+> 💡 If the `code .` command doesn't work, open Visual Studio Code manually and use "File > Open Folder" to open the project folder.
+
 ### Flujo Git inicial
 
-Abre **Git Bash** y ejecuta:
+En **Git Bash**, ejecuta:
 
 ```bash
 git checkout main
